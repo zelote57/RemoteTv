@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Remote TV - Preview Blanco</title>
+    <style>
+        :root {
+            --bg-canvas: #e9ecf0;
+            --phone-bg: #f6f7fa;
+            --surface: #ffffff;
+            --surface-pressed: #eef0f4;
+            --border: #e2e6ec;
+            --icon-dark: #212529;
+            --text-muted: #788291;
+            --power-red: #ef4444;
+            --connected-green: #22c55e;
+            --shadow-soft: 0 4px 16px rgba(20, 30, 50, 0.07);
+            --shadow-btn: 0 3px 8px rgba(20, 30, 50, 0.05);
+        }
+
+        * {
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-canvas);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            padding: 20px;
+        }
+
+        /* Chasis del iPhone 6 (375 x 667 pt) */
+        .iphone-frame {
+            width: 375px;
+            height: 667px;
+            background-color: var(--phone-bg);
+            border-radius: 40px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 10px #ffffff;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            border: 1px solid var(--border);
+        }
+
+        /* Barra de estado simulada */
+        .status-bar {
+            height: 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 24px;
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--icon-dark);
+        }
+
+        .remote-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 12px 24px 28px 24px;
+            justify-content: space-between;
+        }
+
+        /* 1. Header */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 44px;
+        }
+
+        .status-pill {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 8px 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: var(--shadow-btn);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .status-pill:active {
+            transform: scale(0.96);
+            background: var(--surface-pressed);
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--connected-green);
+        }
+
+        .status-text {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--icon-dark);
+        }
+
+        .btn-power {
+            width: 44px;
+            height: 44px;
+            border-radius: 16px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            color: var(--power-red);
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: var(--shadow-btn);
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .btn-power:active {
+            transform: scale(0.92);
+            background: var(--surface-pressed);
+        }
+
+        /* 2. D-Pad Circular */
+        .dpad-wrapper {
+            display: flex;
+            justify-content: center;
+            margin: 10px 0;
+        }
+
+        .dpad {
+            width: 220px;
+            height: 220px;
+            border-radius: 50%;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow-soft);
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .dpad-dir {
+            position: absolute;
+            background: none;
+            border: none;
+            color: var(--icon-dark);
+            font-size: 18px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.1s ease;
+        }
+
+        .dpad-dir:active {
+            opacity: 0.5;
+            transform: scale(0.9);
+        }
+
+        .dpad-up { top: 12px; left: 0; right: 0; height: 50px; }
+        .dpad-down { bottom: 12px; left: 0; right: 0; height: 50px; }
+        .dpad-left { left: 12px; top: 0; bottom: 0; width: 50px; }
+        .dpad-right { right: 12px; top: 0; bottom: 0; width: 50px; }
+
+        .dpad-center {
+            width: 90px;
+            height: 90px;
+            border-radius: 50%;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow-btn);
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--icon-dark);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.15s ease;
+            z-index: 2;
+        }
+
+        .dpad-center:active {
+            transform: scale(0.92);
+            background: var(--surface-pressed);
+        }
+
+        /* 3. Fila de Navegación */
+        .nav-row {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            padding: 0 10px;
+        }
+
+        .btn-round {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            color: var(--icon-dark);
+            font-size: 22px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: var(--shadow-btn);
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .btn-round:active {
+            transform: scale(0.92);
+            background: var(--surface-pressed);
+        }
+
+        /* 4. Panel Inferior */
+        .bottom-panel {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            padding: 0 10px;
+        }
+
+        .vol-column {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .btn-pill {
+            height: 48px;
+            border-radius: 24px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            color: var(--icon-dark);
+            font-size: 14px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: var(--shadow-btn);
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .btn-pill:active {
+            transform: scale(0.94);
+            background: var(--surface-pressed);
+        }
+
+        .action-column {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+        }
+
+        .action-column .btn-round {
+            width: 50px;
+            height: 50px;
+            font-size: 18px;
+        }
+
+        .label-toast {
+            text-align: center;
+            font-size: 11px;
+            color: var(--text-muted);
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            font-weight: 600;
+            margin-top: 4px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="iphone-frame">
+        <!-- Barra de estado -->
+        <div class="status-bar">
+            <span>9:41</span>
+            <span>LTE • 100%</span>
+        </div>
+
+        <div class="remote-container">
+            <!-- Header -->
+            <div class="header">
+                <div class="status-pill" onclick="promptIP()">
+                    <div class="status-dot"></div>
+                    <span class="status-text" id="statusLabel">Google TV (192.168.1.50)</span>
+                </div>
+                <button class="btn-power" onclick="sendCmd('POWER')">⏻</button>
+            </div>
+
+            <!-- D-Pad Circular -->
+            <div class="dpad-wrapper">
+                <div class="dpad">
+                    <button class="dpad-dir dpad-up" onclick="sendCmd('DPAD_UP')">▲</button>
+                    <button class="dpad-dir dpad-down" onclick="sendCmd('DPAD_DOWN')">▼</button>
+                    <button class="dpad-dir dpad-left" onclick="sendCmd('DPAD_LEFT')">◀</button>
+                    <button class="dpad-dir dpad-right" onclick="sendCmd('DPAD_RIGHT')">▶</button>
+                    <button class="dpad-center" onclick="sendCmd('DPAD_CENTER')">OK</button>
+                </div>
+            </div>
+
+            <!-- Fila de Navegación -->
+            <div class="nav-row">
+                <button class="btn-round" title="Atrás" onclick="sendCmd('BACK')">‹</button>
+                <button class="btn-round" title="Inicio" onclick="sendCmd('HOME')">⌂</button>
+                <button class="btn-round" title="Menú" onclick="sendCmd('MENU')">≡</button>
+            </div>
+
+            <!-- Panel de Volumen y Acciones -->
+            <div class="bottom-panel">
+                <div class="vol-column">
+                    <button class="btn-pill" onclick="sendCmd('VOLUME_UP')">VOL +</button>
+                    <button class="btn-pill" onclick="sendCmd('VOLUME_DOWN')">VOL −</button>
+                </div>
+                <div class="action-column">
+                    <button class="btn-round" title="Silencio" onclick="sendCmd('MUTE')">🔇</button>
+                    <button class="btn-round" title="Play/Pause" onclick="sendCmd('PLAY_PAUSE')">⏯</button>
+                </div>
+            </div>
+
+            <div class="label-toast" id="toastMessage">Listo • Pulsa cualquier botón</div>
+        </div>
+    </div>
+
+    <script>
+        function sendCmd(cmd) {
+            const toast = document.getElementById('toastMessage');
+            toast.textContent = "Comando enviado: " + cmd;
+            toast.style.color = "#007aff";
+            setTimeout(() => {
+                toast.textContent = "Listo • Pulsa cualquier botón";
+                toast.style.color = "var(--text-muted)";
+            }, 1000);
+        }
+
+        function promptIP() {
+            const current = document.getElementById('statusLabel').textContent;
+            const newIP = prompt("Introduce la IP de tu Google TV:", "192.168.1.50");
+            if (newIP) {
+                document.getElementById('statusLabel').textContent = "Google TV (" + newIP + ")";
+            }
+        }
+    </script>
+</body>
+</html>

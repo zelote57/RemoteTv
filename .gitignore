@@ -1,0 +1,9 @@
+# Xcode & macOS
+build/
+DerivedData/
+*.xcuserstate
+*.xcuserdatad
+.DS_Store
+
+# Test IPAs
+*.ipa
