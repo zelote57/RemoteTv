@@ -17,8 +17,6 @@ class DPadView: UIView {
     private let leftButton = UIButton(type: .custom)
     private let rightButton = UIButton(type: .custom)
     private let centerButton = UIButton(type: .custom)
-    
-    private var feedbackGenerator: Any?
 
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -36,19 +34,11 @@ class DPadView: UIView {
         layer.borderWidth = 1.0
         Theme.Shadows.applySoftCard(to: layer)
 
-        if #available(iOS 10.0, *) {
-            let gen = UIImpactFeedbackGenerator(style: .medium)
-            gen.prepare()
-            self.feedbackGenerator = gen
-        }
-
-        // Configurar botones direccionales
         configureDirectionButton(upButton, title: "▲", action: #selector(didTapUp))
         configureDirectionButton(downButton, title: "▼", action: #selector(didTapDown))
         configureDirectionButton(leftButton, title: "◀", action: #selector(didTapLeft))
         configureDirectionButton(rightButton, title: "▶", action: #selector(didTapRight))
 
-        // Configurar botón central OK
         centerButton.setTitle("OK", for: .normal)
         centerButton.setTitleColor(Theme.Colors.iconDark, for: .normal)
         centerButton.titleLabel?.font = UIFont.systemFont(ofSize: 17, weight: .bold)
@@ -80,17 +70,16 @@ class DPadView: UIView {
     }
 
     @objc private func btnDown(_ sender: UIButton) {
-        if #available(iOS 10.0, *), let gen = feedbackGenerator as? UIImpactFeedbackGenerator {
-            gen.impactOccurred()
-        }
-        UIView.animate(withDuration: 0.1) {
+        HapticManager.playTactileClick()
+        
+        UIView.animate(withDuration: 0.10) {
             sender.transform = CGAffineTransform(scaleX: 0.92, y: 0.92)
             sender.backgroundColor = Theme.Colors.surfacePressed
         }
     }
 
     @objc private func btnUp(_ sender: UIButton) {
-        UIView.animate(withDuration: 0.2, delay: 0, usingSpringWithDamping: 0.6, initialSpringVelocity: 0.8, options: [], animations: {
+        UIView.animate(withDuration: 0.20, delay: 0, usingSpringWithDamping: 0.6, initialSpringVelocity: 0.8, options: [], animations: {
             sender.transform = .identity
             sender.backgroundColor = sender == self.centerButton ? Theme.Colors.surface : .clear
         })

@@ -26,8 +26,9 @@ enum AndroidKeyCode: Int {
 
 enum ConnectionStatus: Equatable {
     case disconnected
-    case connecting(String)
-    case pairingRequired(String) // Host requesting PIN
-    case connected(String)       // Host IP
+    case searching
+    case connecting(String)      // Nombre de la TV
+    case pairingRequired(String) // Nombre de la TV
+    case connected(String)       // Nombre de la TV
     case error(String)
 }

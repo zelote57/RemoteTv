@@ -14,6 +14,11 @@
 		A00100052900000100000001 /* GoogleTVConstants.swift in Sources */ = {isa = PBXBuildFile; fileRef = B00100052900000100000001 /* GoogleTVConstants.swift */; };
 		A00100062900000100000001 /* GoogleTVClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = B00100062900000100000001 /* GoogleTVClient.swift */; };
 		A00100072900000100000001 /* RemoteViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B00100072900000100000001 /* RemoteViewController.swift */; };
+		A00100082900000100000001 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = B00100092900000100000001 /* LaunchScreen.storyboard */; };
+		A00100092900000100000001 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B00100102900000100000001 /* Assets.xcassets */; };
+		A00100102900000100000001 /* HapticManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = B00100112900000100000001 /* HapticManager.swift */; };
+		A00100112900000100000001 /* GoogleTVDiscovery.swift in Sources */ = {isa = PBXBuildFile; fileRef = B00100122900000100000001 /* GoogleTVDiscovery.swift */; };
+		A00100122900000100000001 /* DevicePickerSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = B00100132900000100000001 /* DevicePickerSheet.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -26,6 +31,11 @@
 		B00100062900000100000001 /* GoogleTVClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GoogleTVClient.swift; sourceTree = "<group>"; };
 		B00100072900000100000001 /* RemoteViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteViewController.swift; sourceTree = "<group>"; };
 		B00100082900000100000001 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		B00100092900000100000001 /* LaunchScreen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = LaunchScreen.storyboard; sourceTree = "<group>"; };
+		B00100102900000100000001 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		B00100112900000100000001 /* HapticManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HapticManager.swift; sourceTree = "<group>"; };
+		B00100122900000100000001 /* GoogleTVDiscovery.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GoogleTVDiscovery.swift; sourceTree = "<group>"; };
+		B00100132900000100000001 /* DevicePickerSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DevicePickerSheet.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -54,6 +64,8 @@
 			children = (
 				B00100012900000100000001 /* AppDelegate.swift */,
 				B00100082900000100000001 /* Info.plist */,
+				B00100092900000100000001 /* LaunchScreen.storyboard */,
+				B00100102900000100000001 /* Assets.xcassets */,
 			);
 			path = App;
 			sourceTree = "<group>";
@@ -73,6 +85,7 @@
 			children = (
 				B00100032900000100000001 /* RemoteButton.swift */,
 				B00100042900000100000001 /* DPadView.swift */,
+				B00100132900000100000001 /* DevicePickerSheet.swift */,
 			);
 			path = Components;
 			sourceTree = "<group>";
@@ -81,6 +94,7 @@
 			isa = PBXGroup;
 			children = (
 				B00100022900000100000001 /* Theme.swift */,
+				B00100112900000100000001 /* HapticManager.swift */,
 			);
 			path = Style;
 			sourceTree = "<group>";
@@ -90,6 +104,7 @@
 			children = (
 				B00100052900000100000001 /* GoogleTVConstants.swift */,
 				B00100062900000100000001 /* GoogleTVClient.swift */,
+				B00100122900000100000001 /* GoogleTVDiscovery.swift */,
 			);
 			path = Core;
 			sourceTree = "<group>";
@@ -128,7 +143,7 @@
 		000100012900000100000001 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 1430;
+				LastUpgradeCheck = 1540;
 				TargetAttributes = {
 					F00100012900000100000001 = {
 						CreatedOnToolsVersion = 14.3.1;
@@ -137,10 +152,11 @@
 			};
 			buildConfigurationList = G00100022900000100000001 /* Build configuration list for PBXProject "RemoteTv" */;
 			compatibilityVersion = "Xcode 9.3";
-			developmentRegion = en;
+			developmentRegion = es;
 			hasScannedForEncodings = 0;
 			knownRegions = (
 				en,
+				es,
 				Base,
 			);
 			mainGroup = E00100012900000100000001;
@@ -158,6 +174,8 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A00100082900000100000001 /* LaunchScreen.storyboard in Resources */,
+				A00100092900000100000001 /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -175,6 +193,9 @@
 				A00100052900000100000001 /* GoogleTVConstants.swift in Sources */,
 				A00100062900000100000001 /* GoogleTVClient.swift in Sources */,
 				A00100072900000100000001 /* RemoteViewController.swift in Sources */,
+				A00100102900000100000001 /* HapticManager.swift in Sources */,
+				A00100112900000100000001 /* GoogleTVDiscovery.swift in Sources */,
+				A00100122900000100000001 /* DevicePickerSheet.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

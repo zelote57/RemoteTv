@@ -4,7 +4,7 @@ protocol GoogleTVClientDelegate: AnyObject {
     func clientDidChangeStatus(_ client: GoogleTVClient, status: ConnectionStatus)
 }
 
-class GoogleTVClient {
+class GoogleTVClient: GoogleTVDiscoveryDelegate {
 
     static let shared = GoogleTVClient()
     
@@ -18,63 +18,75 @@ class GoogleTVClient {
         }
     }
     
+    private(set) var currentTVName: String?
+    private(set) var currentHost: String?
+    
     private let pairingPort: UInt16 = 6466
     private let remotePort: UInt16 = 6467
     
-    private var targetHost: String?
-    
     init() {
-        if let savedHost = UserDefaults.standard.string(forKey: "saved_tv_ip") {
-            self.targetHost = savedHost
-        }
-    }
-    
-    func saveTargetHost(_ host: String) {
-        self.targetHost = host
-        UserDefaults.standard.set(host, forKey: "saved_tv_ip")
-    }
-    
-    func getSavedHost() -> String? {
-        return targetHost ?? UserDefaults.standard.string(forKey: "saved_tv_ip")
+        self.currentTVName = UserDefaults.standard.string(forKey: "saved_tv_name")
+        self.currentHost = UserDefaults.standard.string(forKey: "saved_tv_ip")
+        
+        GoogleTVDiscovery.shared.delegate = self
     }
 
-    func connect(to host: String) {
-        saveTargetHost(host)
-        currentStatus = .connecting(host)
+    func startAutoDiscovery() {
+        currentStatus = .searching
+        GoogleTVDiscovery.shared.startDiscovery()
+    }
+
+    // MARK: - GoogleTVDiscoveryDelegate
+    func discoveryDidUpdateDevices(_ discovery: GoogleTVDiscovery, devices: [DiscoveredTV]) {
+        // Si hay una TV guardada previamente y la encontramos, auto-conectamos
+        if case .searching = currentStatus, let savedHost = currentHost {
+            if let matched = devices.first(where: { $0.host == savedHost }) {
+                connect(to: matched)
+            }
+        }
+    }
+
+    func connect(to tv: DiscoveredTV) {
+        self.currentTVName = tv.name
+        self.currentHost = tv.host
         
-        // Simulación controlada para inicio / Gancho para Sockets reales en CocoaAsyncSocket
-        print("[GoogleTVClient] Conectando a \(host):\(remotePort)")
+        UserDefaults.standard.set(tv.name, forKey: "saved_tv_name")
+        UserDefaults.standard.set(tv.host, forKey: "saved_tv_ip")
         
-        // Verificamos si ya tenemos certificado emparejado
-        let hasCert = UserDefaults.standard.bool(forKey: "tv_paired_\(host)")
-        if !hasCert {
-            // Requiere emparejamiento con PIN en puerto 6466
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
-                self.currentStatus = .pairingRequired(host)
+        currentStatus = .connecting(tv.name)
+        print("[GoogleTVClient] Conectando a \(tv.name) (\(tv.host))...")
+        
+        // Comprobamos si ya está emparejado
+        let isPaired = UserDefaults.standard.bool(forKey: "tv_paired_\(tv.host)")
+        if !isPaired {
+            // Solicitar código PIN en pantalla
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
+                self.currentStatus = .pairingRequired(tv.name)
             }
         } else {
-            // Conectado directamente
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
-                self.currentStatus = .connected(host)
+            // Conexión directa
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
+                self.currentStatus = .connected(tv.name)
             }
         }
     }
 
     func submitPin(_ pin: String) {
-        guard let host = targetHost else { return }
-        print("[GoogleTVClient] Enviando PIN \(pin) para \(host) en puerto \(pairingPort)...")
+        guard let host = currentHost, let name = currentTVName else { return }
+        print("[GoogleTVClient] Verificando PIN \(pin) para \(name) (\(host))...")
         
-        // Validamos el secreto de emparejamiento
+        // Guardamos el emparejamiento confirmado
         UserDefaults.standard.set(true, forKey: "tv_paired_\(host)")
-        currentStatus = .connected(host)
+        currentStatus = .connected(name)
+        HapticManager.playSuccess()
     }
 
     func sendKey(_ key: AndroidKeyCode) {
-        guard case .connected(let host) = currentStatus else {
+        guard case .connected(let name) = currentStatus, let host = currentHost else {
             print("[GoogleTVClient] No conectado. Ignorando tecla: \(key)")
             return
         }
-        print("[GoogleTVClient] Enviando tecla a \(host):\(remotePort) -> \(key) (Code: \(key.rawValue))")
+        print("[GoogleTVClient] Enviando tecla a \(name) (\(host)) -> \(key) (Code: \(key.rawValue))")
     }
 
     func disconnect() {

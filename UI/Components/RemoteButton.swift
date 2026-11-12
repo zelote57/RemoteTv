@@ -10,7 +10,6 @@ class RemoteButton: UIButton {
     }
 
     private let style: Style
-    private var feedbackGenerator: Any? // UIImpactFeedbackGenerator para iOS 10+
 
     init(title: String? = nil, icon: UIImage? = nil, style: Style = .round) {
         self.style = style
@@ -49,13 +48,6 @@ class RemoteButton: UIButton {
         }
         
         Theme.Shadows.applyButtonShadow(to: layer)
-        
-        // Haptic Feedback Generator (compatible con iOS 10+)
-        if #available(iOS 10.0, *) {
-            let generator = UIImpactFeedbackGenerator(style: .medium)
-            generator.prepare()
-            self.feedbackGenerator = generator
-        }
     }
 
     override func layoutSubviews() {
@@ -76,18 +68,16 @@ class RemoteButton: UIButton {
     }
 
     @objc private func handleTouchDown() {
-        if #available(iOS 10.0, *), let gen = feedbackGenerator as? UIImpactFeedbackGenerator {
-            gen.impactOccurred()
-        }
+        HapticManager.playTactileClick()
         
-        UIView.animate(withDuration: 0.12, delay: 0, options: [.curveEaseOut], animations: {
-            self.transform = CGAffineTransform(scaleX: 0.94, y: 0.94)
+        UIView.animate(withDuration: 0.10, delay: 0, options: [.curveEaseOut], animations: {
+            self.transform = CGAffineTransform(scaleX: 0.93, y: 0.93)
             self.backgroundColor = Theme.Colors.surfacePressed
         })
     }
 
     @objc private func handleTouchUp() {
-        UIView.animate(withDuration: 0.25, delay: 0, usingSpringWithDamping: 0.6, initialSpringVelocity: 0.8, options: [], animations: {
+        UIView.animate(withDuration: 0.22, delay: 0, usingSpringWithDamping: 0.6, initialSpringVelocity: 0.8, options: [], animations: {
             self.transform = .identity
             self.backgroundColor = Theme.Colors.surface
         })
