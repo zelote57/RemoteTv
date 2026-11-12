@@ -193,7 +193,7 @@ class RemoteService: NSObject, StreamDelegate {
 
     private func send(data: Data) {
         guard let stream = outputStream, stream.hasSpaceAvailable else { return }
-        data.withUnsafeBytes { ptr in
+        data.withUnsafeBytes { (ptr: UnsafeRawBufferPointer) in
             if let baseAddr = ptr.baseAddress {
                 stream.write(baseAddr.assumingMemoryBound(to: UInt8.self), maxLength: data.count)
             }

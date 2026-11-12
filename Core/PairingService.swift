@@ -4,7 +4,10 @@
 
 import Foundation
 import Security
-import CommonCrypto
+
+// MARK: - SHA256 sin CommonCrypto (usando Security.framework)
+// Usamos CryptoKit-free SHA256 via CC functions through a bridging approach.
+// En su lugar implementamos SHA256 en pure Swift para evitar problemas de módulo.
 
 // MARK: - Delegate
 
@@ -33,7 +36,7 @@ class PairingService: NSObject, StreamDelegate {
     private var serverCertData: Data?
 
     // Estado de la máquina de estados del protocolo Polo
-    private enum State {
+    private enum PairingState: Equatable {
         case idle
         case connecting
         case sentPairingRequest
@@ -45,7 +48,7 @@ class PairingService: NSObject, StreamDelegate {
         case paired
         case failed
     }
-    private var state: State = .idle
+    private var state: PairingState = .idle
 
     // MARK: - API Pública
 
@@ -114,10 +117,11 @@ class PairingService: NSObject, StreamDelegate {
 
         // Configurar TLS con certificado de cliente y sin validación del servidor
         // (el TV usa un certificado autofirmado)
-        let sslSettings: [NSString: Any] = [
-            kCFStreamSSLIsServer:              false,
-            kCFStreamSSLValidatesCertificateChain: false,
-            kCFStreamSSLCertificates:          [identity] as CFArray,
+        // Usamos NSString keys para evitar problemas de cast con CFString
+        let sslSettings: [String: Any] = [
+            kCFStreamSSLIsServer as String:                   false,
+            kCFStreamSSLValidatesCertificateChain as String:  false,
+            kCFStreamSSLCertificates as String:               [identity] as CFArray,
         ]
 
         inputStream?.setProperty(StreamSocketSecurityLevel.negotiatedSSL.rawValue,
@@ -125,10 +129,9 @@ class PairingService: NSObject, StreamDelegate {
         outputStream?.setProperty(StreamSocketSecurityLevel.negotiatedSSL.rawValue,
                                   forKey: Stream.PropertyKey.socketSecurityLevelKey)
 
-        inputStream?.setProperty(sslSettings as CFDictionary,
-                                 forKey: Stream.PropertyKey(rawValue: kCFStreamPropertySSLSettings as String))
-        outputStream?.setProperty(sslSettings as CFDictionary,
-                                  forKey: Stream.PropertyKey(rawValue: kCFStreamPropertySSLSettings as String))
+        let sslKey = Stream.PropertyKey(rawValue: kCFStreamPropertySSLSettings as String)
+        inputStream?.setProperty(sslSettings as CFDictionary, forKey: sslKey)
+        outputStream?.setProperty(sslSettings as CFDictionary, forKey: sslKey)
 
         inputStream?.delegate  = self
         outputStream?.delegate = self
@@ -163,14 +166,16 @@ class PairingService: NSObject, StreamDelegate {
             print("[Pairing] Error en stream: \(err)")
             if state != .failed {
                 state = .failed
-                delegate?.pairingDidFail(error: err)
+                DispatchQueue.main.async { self.delegate?.pairingDidFail(error: err) }
             }
 
         case .endEncountered:
             print("[Pairing] Stream cerrado por el servidor")
             if state != .paired && state != .failed {
                 state = .failed
-                delegate?.pairingDidFail(error: "Conexión cerrada por el TV")
+                DispatchQueue.main.async {
+                    self.delegate?.pairingDidFail(error: "Conexión cerrada por el TV")
+                }
             }
 
         default:
@@ -181,13 +186,8 @@ class PairingService: NSObject, StreamDelegate {
     // MARK: - Extracción del certificado del servidor
 
     private func extractServerCert() {
-        guard let ssl = inputStream?.property(forKey: Stream.PropertyKey(rawValue: kCFStreamPropertySSLContext as String)) else {
-            print("[Pairing] No se pudo obtener SSLContext del stream")
-            return
-        }
-
-        // kCFStreamPropertySSLPeerCertificates devuelve array de SecCertificate
-        guard let certs = inputStream?.property(forKey: Stream.PropertyKey(rawValue: kCFStreamPropertySSLPeerCertificates as String)) as? [SecCertificate],
+        let certKey = Stream.PropertyKey(rawValue: kCFStreamPropertySSLPeerCertificates as String)
+        guard let certs = inputStream?.property(forKey: certKey) as? [SecCertificate],
               let serverCert = certs.first else {
             print("[Pairing] No hay certificado del servidor aún (se intentará de nuevo al recibir ack)")
             return
@@ -198,14 +198,6 @@ class PairingService: NSObject, StreamDelegate {
     }
 
     // MARK: - Protocolo Polo — Envío de mensajes
-
-    // Estructura outer PairingMessage (proto3):
-    //   field 1 (protocol_version, varint) = 2
-    //   field 2 (status, varint) = 200
-    //   field 7 (pairing_request, embedded message) = ...
-    //   field 11 (pairing_option, embedded message) = ...
-    //   field 12 (pairing_config, embedded message) = ...
-    //   field 13 (pairing_secret, embedded message) = ...
 
     private func sendPairingRequest() {
         // Inner PairingRequest:
@@ -218,12 +210,11 @@ class PairingService: NSObject, StreamDelegate {
         // Outer PairingMessage wrapping PairingRequest:
         //   field 1 (protocol_version) = 2
         //   field 2 (status)           = 200  (STATUS_OK)
-        //   field 10 (type)            = 10   (PAIRING_REQUEST)  — no siempre necesario
         //   field 7 (pairing_request)  = inner bytes
         var outer = Data()
-        outer.append(protoVarint(field: 1, value: 2))    // protocol_version = 2
-        outer.append(protoVarint(field: 2, value: 200))  // status = STATUS_OK
-        outer.append(protoBytes(field: 7, value: inner))  // pairing_request
+        outer.append(protoVarint(field: 1, value: 2))
+        outer.append(protoVarint(field: 2, value: 200))
+        outer.append(protoBytes(field: 7, value: inner))
 
         send(data: delimited(outer))
         state = .sentPairingRequest
@@ -232,21 +223,20 @@ class PairingService: NSObject, StreamDelegate {
 
     private func sendPairingOption() {
         // PairingOption inner:
-        //   field 2 (output_encodings, embedded message):
-        //     field 1 (encoding_type, varint) = 3  (ENCODING_TYPE_HEXADECIMAL)
-        //     field 2 (symbol_length, varint) = 6
+        //   field 2 (output_encodings):
+        //     field 1 (encoding_type) = 3 (HEXADECIMAL)
+        //     field 2 (symbol_length) = 6
         var encMsg = Data()
-        encMsg.append(protoVarint(field: 1, value: 3))  // ENCODING_TYPE_HEXADECIMAL
-        encMsg.append(protoVarint(field: 2, value: 6))  // 6 chars
+        encMsg.append(protoVarint(field: 1, value: 3))
+        encMsg.append(protoVarint(field: 2, value: 6))
 
         var inner = Data()
-        inner.append(protoBytes(field: 2, value: encMsg))  // output_encodings
+        inner.append(protoBytes(field: 2, value: encMsg))
 
-        // Outer wrapping PairingOption:
         var outer = Data()
         outer.append(protoVarint(field: 1, value: 2))
         outer.append(protoVarint(field: 2, value: 200))
-        outer.append(protoBytes(field: 11, value: inner))  // pairing_option field = 11
+        outer.append(protoBytes(field: 11, value: inner))
 
         send(data: delimited(outer))
         state = .sentOption
@@ -254,11 +244,6 @@ class PairingService: NSObject, StreamDelegate {
     }
 
     private func sendPairingConfiguration() {
-        // PairingConfiguration inner:
-        //   field 1 (encoding, embedded message):
-        //     field 1 (encoding_type) = 3 (HEXADECIMAL)
-        //     field 2 (symbol_length) = 6
-        //   field 2 (client_role, varint) = 1 (ROLE_INPUT)
         var encMsg = Data()
         encMsg.append(protoVarint(field: 1, value: 3))
         encMsg.append(protoVarint(field: 2, value: 6))
@@ -270,7 +255,7 @@ class PairingService: NSObject, StreamDelegate {
         var outer = Data()
         outer.append(protoVarint(field: 1, value: 2))
         outer.append(protoVarint(field: 2, value: 200))
-        outer.append(protoBytes(field: 12, value: inner))  // pairing_configuration field = 12
+        outer.append(protoBytes(field: 12, value: inner))
 
         send(data: delimited(outer))
         state = .waitingForSecret
@@ -279,7 +264,6 @@ class PairingService: NSObject, StreamDelegate {
     }
 
     private func buildSecretMessage(hexPin: String) -> Data? {
-        // Intentar de nuevo capturar el cert del servidor si no lo tenemos aún
         if serverCertData == nil { extractServerCert() }
 
         guard let serverCert = serverCertData else {
@@ -287,40 +271,35 @@ class PairingService: NSObject, StreamDelegate {
             return nil
         }
 
-        // Modulus del cliente
-        guard let clientModulus = extractRSAModulus(from: CertificateStore.getClientIdentity()) else {
+        guard let clientModulus = extractRSAModulus(fromIdentity: CertificateStore.getClientIdentity()) else {
             print("[Pairing] No se pudo extraer módulo RSA del cliente")
             return nil
         }
 
-        // Modulus del servidor
         guard let serverModulus = extractRSAModulusFromCertData(serverCert) else {
             print("[Pairing] No se pudo extraer módulo RSA del servidor")
             return nil
         }
 
-        // PIN hexadecimal → bytes (ej. "AB12CD" → [0xAB, 0x12, 0xCD])
         let pinBytes = hexStringToBytes(hexPin)
 
         // SHA256(clientModulus || 0x01 || serverModulus || 0x01 || pinBytes)
         var hashInput = Data()
         hashInput.append(clientModulus)
-        hashInput.append(0x01)
+        hashInput.append(contentsOf: [0x01])
         hashInput.append(serverModulus)
-        hashInput.append(0x01)
+        hashInput.append(contentsOf: [0x01])
         hashInput.append(contentsOf: pinBytes)
 
-        let secretHash = sha256(hashInput)
+        let secretHash = sha256Swift(hashInput)
 
-        // PairingSecret inner:
-        //   field 1 (secret, bytes) = sha256_hash
         var inner = Data()
         inner.append(protoBytes(field: 1, value: secretHash))
 
         var outer = Data()
         outer.append(protoVarint(field: 1, value: 2))
         outer.append(protoVarint(field: 2, value: 200))
-        outer.append(protoBytes(field: 13, value: inner))  // pairing_secret field = 13
+        outer.append(protoBytes(field: 13, value: inner))
 
         return delimited(outer)
     }
@@ -344,7 +323,6 @@ class PairingService: NSObject, StreamDelegate {
     }
 
     private func processBuffer() {
-        // Los mensajes están delimitados por varint (longitud) al inicio
         while !readBuffer.isEmpty {
             var offset = 0
             guard let msgLen = decodeVarint(from: readBuffer, offset: &offset) else { break }
@@ -358,11 +336,6 @@ class PairingService: NSObject, StreamDelegate {
     }
 
     private func handleMessage(_ data: Data) {
-        // Parsear outer PairingMessage buscando el campo que indica el tipo
-        // field 7 → PairingRequestAck
-        // field 11 → PairingOption
-        // field 12 → PairingConfigurationAck
-        // field 13 → PairingSecretAck
         let fields = parseProtoFields(data)
 
         if fields[7] != nil {
@@ -378,24 +351,14 @@ class PairingService: NSObject, StreamDelegate {
             }
         } else if fields[12] != nil {
             print("[Pairing] Recibido PairingConfigurationAck")
-            // Ahora esperamos el PIN del usuario (ya notificamos via delegate en sendPairingConfiguration)
-        } else if let secretAckData = fields[13] {
+        } else if let _ = fields[13] {
             print("[Pairing] Recibido PairingSecretAck")
-            handleSecretAck(secretAckData)
+            state = .paired
+            DispatchQueue.main.async { self.delegate?.pairingDidSucceed() }
         } else {
-            // Intenta capturar cert del servidor en cualquier mensaje recibido
             if serverCertData == nil { extractServerCert() }
-            print("[Pairing] Mensaje desconocido recibido (\(data.count) bytes): \(data.map { String(format: "%02x", $0) }.joined())")
+            print("[Pairing] Mensaje desconocido recibido (\(data.count) bytes)")
         }
-    }
-
-    private func handleSecretAck(_ data: Data) {
-        // Si status == STATUS_OK → emparejado con éxito
-        let outerFields = parseProtoFields(data)
-        // field 2 = status (varint)
-        // STATUS_OK = 200
-        state = .paired
-        DispatchQueue.main.async { self.delegate?.pairingDidSucceed() }
     }
 
     // MARK: - Envío
@@ -405,7 +368,7 @@ class PairingService: NSObject, StreamDelegate {
             print("[Pairing] Stream de salida no disponible")
             return
         }
-        data.withUnsafeBytes { ptr in
+        data.withUnsafeBytes { (ptr: UnsafeRawBufferPointer) in
             if let baseAddr = ptr.baseAddress {
                 stream.write(baseAddr.assumingMemoryBound(to: UInt8.self), maxLength: data.count)
             }
@@ -414,29 +377,25 @@ class PairingService: NSObject, StreamDelegate {
 
     // MARK: - Protobuf Helpers
 
-    // Encode varint field (wire type 0)
     private func protoVarint(field: Int, value: Int) -> Data {
         var d = Data()
-        d.append(encodeVarint(UInt64((field << 3) | 0)))  // wire type 0
-        d.append(encodeVarint(UInt64(value)))
+        d.append(encodeVarint(UInt64((field << 3) | 0)))
+        d.append(encodeVarint(UInt64(bitPattern: Int64(value))))
         return d
     }
 
-    // Encode length-delimited field (wire type 2)
     private func protoBytes(field: Int, value: Data) -> Data {
         var d = Data()
-        d.append(encodeVarint(UInt64((field << 3) | 2)))  // wire type 2
+        d.append(encodeVarint(UInt64((field << 3) | 2)))
         d.append(encodeVarint(UInt64(value.count)))
         d.append(value)
         return d
     }
 
-    // Encode string field (wire type 2)
     private func protoString(field: Int, value: String) -> Data {
         return protoBytes(field: field, value: Data(value.utf8))
     }
 
-    // Delimited message: prefixed with its varint length
     private func delimited(_ msg: Data) -> Data {
         var d = Data()
         d.append(encodeVarint(UInt64(msg.count)))
@@ -470,8 +429,6 @@ class PairingService: NSObject, StreamDelegate {
         return nil
     }
 
-    // Parse proto fields → [fieldNumber: Data] (sólo wire type 2 — length-delimited)
-    // Para varint fields (wire type 0), almacena los bytes crudos también
     private func parseProtoFields(_ data: Data) -> [Int: Data] {
         var fields = [Int: Data]()
         var idx = 0
@@ -486,35 +443,115 @@ class PairingService: NSObject, StreamDelegate {
             switch wireType {
             case 0: // varint
                 var o2 = idx
-                guard let _ = decodeVarint(from: data, offset: &o2) else { break }
+                guard decodeVarint(from: data, offset: &o2) != nil else { break }
                 fields[fieldNum] = data.subdata(in: idx..<o2)
                 idx = o2
             case 2: // length-delimited
                 var o2 = idx
                 guard let len = decodeVarint(from: data, offset: &o2) else { break }
                 let end = o2 + Int(len)
-                guard end <= data.count else { break }
+                guard end <= data.count else { return fields }
                 fields[fieldNum] = data.subdata(in: o2..<end)
                 idx = end
             default:
-                // wire types 1, 5 (fixed) — saltar
                 idx = data.count
             }
         }
         return fields
     }
 
-    // MARK: - Crypto Helpers
+    // MARK: - SHA256 (Pure Swift — sin CommonCrypto)
 
-    private func sha256(_ data: Data) -> Data {
-        var hash = [UInt8](repeating: 0, count: Int(CC_SHA256_DIGEST_LENGTH))
-        data.withUnsafeBytes { ptr in
-            if let baseAddr = ptr.baseAddress {
-                CC_SHA256(baseAddr, CC_LONG(data.count), &hash)
-            }
-        }
-        return Data(hash)
+    private func sha256Swift(_ data: Data) -> Data {
+        let bytes = Array(data)
+        return Data(sha256Digest(bytes))
     }
+
+    // SHA-256 puro en Swift — RFC 6234
+    private func sha256Digest(_ message: [UInt8]) -> [UInt8] {
+        var k: [UInt32] = [
+            0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5,
+            0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5,
+            0xd807aa98, 0x12835b01, 0x243185be, 0x550c7dc3,
+            0x72be5d74, 0x80deb1fe, 0x9bdc06a7, 0xc19bf174,
+            0xe49b69c1, 0xefbe4786, 0x0fc19dc6, 0x240ca1cc,
+            0x2de92c6f, 0x4a7484aa, 0x5cb0a9dc, 0x76f988da,
+            0x983e5152, 0xa831c66d, 0xb00327c8, 0xbf597fc7,
+            0xc6e00bf3, 0xd5a79147, 0x06ca6351, 0x14292967,
+            0x27b70a85, 0x2e1b2138, 0x4d2c6dfc, 0x53380d13,
+            0x650a7354, 0x766a0abb, 0x81c2c92e, 0x92722c85,
+            0xa2bfe8a1, 0xa81a664b, 0xc24b8b70, 0xc76c51a3,
+            0xd192e819, 0xd6990624, 0xf40e3585, 0x106aa070,
+            0x19a4c116, 0x1e376c08, 0x2748774c, 0x34b0bcb5,
+            0x391c0cb3, 0x4ed8aa4a, 0x5b9cca4f, 0x682e6ff3,
+            0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208,
+            0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2
+        ]
+
+        var h0: UInt32 = 0x6a09e667
+        var h1: UInt32 = 0xbb67ae85
+        var h2: UInt32 = 0x3c6ef372
+        var h3: UInt32 = 0xa54ff53a
+        var h4: UInt32 = 0x510e527f
+        var h5: UInt32 = 0x9b05688c
+        var h6: UInt32 = 0x1f83d9ab
+        var h7: UInt32 = 0x5be0cd19
+
+        // Pre-processing: padding
+        var msg = message
+        let origLenBits = UInt64(message.count) * 8
+        msg.append(0x80)
+        while (msg.count % 64) != 56 {
+            msg.append(0x00)
+        }
+        for i in (0..<8).reversed() {
+            msg.append(UInt8((origLenBits >> (i * 8)) & 0xff))
+        }
+
+        // Process each 512-bit chunk
+        for chunkStart in stride(from: 0, to: msg.count, by: 64) {
+            var w = [UInt32](repeating: 0, count: 64)
+            for i in 0..<16 {
+                let j = chunkStart + i * 4
+                w[i] = (UInt32(msg[j]) << 24) | (UInt32(msg[j+1]) << 16) |
+                       (UInt32(msg[j+2]) << 8) | UInt32(msg[j+3])
+            }
+            for i in 16..<64 {
+                let s0 = w[i-15].rotateRight(7) ^ w[i-15].rotateRight(18) ^ (w[i-15] >> 3)
+                let s1 = w[i-2].rotateRight(17) ^ w[i-2].rotateRight(19) ^ (w[i-2] >> 10)
+                w[i] = w[i-16] &+ s0 &+ w[i-7] &+ s1
+            }
+
+            var a = h0, b = h1, c = h2, d = h3
+            var e = h4, f = h5, g = h6, h = h7
+
+            for i in 0..<64 {
+                let S1   = e.rotateRight(6) ^ e.rotateRight(11) ^ e.rotateRight(25)
+                let ch   = (e & f) ^ (~e & g)
+                let temp1 = h &+ S1 &+ ch &+ k[i] &+ w[i]
+                let S0   = a.rotateRight(2) ^ a.rotateRight(13) ^ a.rotateRight(22)
+                let maj  = (a & b) ^ (a & c) ^ (b & c)
+                let temp2 = S0 &+ maj
+
+                h = g; g = f; f = e; e = d &+ temp1
+                d = c; c = b; b = a; a = temp1 &+ temp2
+            }
+
+            h0 = h0 &+ a; h1 = h1 &+ b; h2 = h2 &+ c; h3 = h3 &+ d
+            h4 = h4 &+ e; h5 = h5 &+ f; h6 = h6 &+ g; h7 = h7 &+ h
+        }
+
+        var digest = [UInt8]()
+        for word in [h0, h1, h2, h3, h4, h5, h6, h7] {
+            digest.append(UInt8((word >> 24) & 0xff))
+            digest.append(UInt8((word >> 16) & 0xff))
+            digest.append(UInt8((word >> 8) & 0xff))
+            digest.append(UInt8(word & 0xff))
+        }
+        return digest
+    }
+
+    // MARK: - Crypto / Key Helpers
 
     private func hexStringToBytes(_ hex: String) -> [UInt8] {
         let clean = hex.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -530,7 +567,7 @@ class PairingService: NSObject, StreamDelegate {
         return bytes
     }
 
-    private func extractRSAModulus(from identity: SecIdentity?) -> Data? {
+    private func extractRSAModulus(fromIdentity identity: SecIdentity?) -> Data? {
         guard let identity = identity else { return nil }
         var cert: SecCertificate?
         SecIdentityCopyCertificate(identity, &cert)
@@ -539,16 +576,13 @@ class PairingService: NSObject, StreamDelegate {
         return extractRSAModulusFromCertData(certData)
     }
 
-    // Extraer módulo RSA del DER de un certificado X.509
-    // El módulo está dentro de SubjectPublicKeyInfo → BIT STRING → INTEGER (módulo)
     private func extractRSAModulusFromCertData(_ derData: Data) -> Data? {
-        // Usar SecKey para obtener el modulus de forma portable en iOS 12
         guard let cert = SecCertificateCreateWithData(nil, derData as CFData) else { return nil }
 
         var publicKey: SecKey?
         var trust: SecTrust?
         let policy = SecPolicyCreateBasicX509()
-        SecTrustCreateWithCertificates([cert] as CFArray, policy, &trust)
+        let _ = SecTrustCreateWithCertificates([cert] as CFArray, policy, &trust)
 
         if let trust = trust {
             if #available(iOS 14, *) {
@@ -560,12 +594,10 @@ class PairingService: NSObject, StreamDelegate {
 
         guard let key = publicKey else { return nil }
 
-        // Exportar como PKCS#1 DER y parsear manualmente
         var error: Unmanaged<CFError>?
         guard let keyData = SecKeyCopyExternalRepresentation(key, &error) as Data? else { return nil }
 
-        // keyData es el ASN.1 DER del public key RSA (PKCS#1)
-        // Estructura: SEQUENCE { INTEGER(modulus), INTEGER(exponent) }
+        // keyData es PKCS#1 DER: SEQUENCE { INTEGER(modulus), INTEGER(exponent) }
         return extractModulusFromPKCS1DER(keyData)
     }
 
@@ -573,19 +605,18 @@ class PairingService: NSObject, StreamDelegate {
         var idx = 0
         guard der.count > 2 else { return nil }
 
-        // SEQUENCE tag
+        // SEQUENCE tag 0x30
         guard der[idx] == 0x30 else { return nil }
         idx += 1
-        idx += skipDERLength(der, idx: idx)
+        let (_, seqLenBytes) = readDERLength(der, idx: idx)
+        idx += seqLenBytes
 
-        // Primera INTEGER = módulo
+        // INTEGER tag 0x02 (módulo)
         guard idx < der.count, der[idx] == 0x02 else { return nil }
         idx += 1
 
-        var modLen = 0
-        let (length, lenBytes) = readDERLength(der, idx: idx)
-        modLen = length
-        idx += lenBytes
+        let (modLen, modLenBytes) = readDERLength(der, idx: idx)
+        idx += modLenBytes
 
         guard idx + modLen <= der.count else { return nil }
 
@@ -595,11 +626,6 @@ class PairingService: NSObject, StreamDelegate {
             modulusData = modulusData.dropFirst()
         }
         return modulusData
-    }
-
-    private func skipDERLength(_ data: Data, idx: Int) -> Int {
-        let (_, bytes) = readDERLength(data, idx: idx)
-        return bytes
     }
 
     private func readDERLength(_ data: Data, idx: Int) -> (Int, Int) {
@@ -615,5 +641,13 @@ class PairingService: NSObject, StreamDelegate {
             length = length << 8 | Int(data[idx + i])
         }
         return (length, 1 + numBytes)
+    }
+}
+
+// MARK: - UInt32 rotate helper
+
+private extension UInt32 {
+    func rotateRight(_ n: Int) -> UInt32 {
+        return (self >> UInt32(n)) | (self << UInt32(32 - n))
     }
 }
