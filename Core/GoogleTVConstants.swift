@@ -27,8 +27,9 @@ enum AndroidKeyCode: Int {
 enum ConnectionStatus: Equatable {
     case disconnected
     case searching
-    case connecting(String)      // Nombre de la TV
-    case pairingRequired(String) // Nombre de la TV
-    case connected(String)       // Nombre de la TV
+    case ready(String)           // TV detectada y lista para conectar (ej. "Living Room TV")
+    case connecting(String)      // Conectando al socket
+    case pairingRequired(String) // Requiere código PIN en pantalla
+    case connected(String)       // Enlazado y controlando en vivo
     case error(String)
 }

@@ -19,6 +19,9 @@
 		A00100102900000100000001 /* HapticManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = B00100112900000100000001 /* HapticManager.swift */; };
 		A00100112900000100000001 /* GoogleTVDiscovery.swift in Sources */ = {isa = PBXBuildFile; fileRef = B00100122900000100000001 /* GoogleTVDiscovery.swift */; };
 		A00100122900000100000001 /* DevicePickerSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = B00100132900000100000001 /* DevicePickerSheet.swift */; };
+		A00100132900000100000001 /* CertificateStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = B00100142900000100000001 /* CertificateStore.swift */; };
+		A00100142900000100000001 /* PairingService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B00100152900000100000001 /* PairingService.swift */; };
+		A00100152900000100000001 /* RemoteService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B00100162900000100000001 /* RemoteService.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -36,6 +39,9 @@
 		B00100112900000100000001 /* HapticManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HapticManager.swift; sourceTree = "<group>"; };
 		B00100122900000100000001 /* GoogleTVDiscovery.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GoogleTVDiscovery.swift; sourceTree = "<group>"; };
 		B00100132900000100000001 /* DevicePickerSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DevicePickerSheet.swift; sourceTree = "<group>"; };
+		B00100142900000100000001 /* CertificateStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CertificateStore.swift; sourceTree = "<group>"; };
+		B00100152900000100000001 /* PairingService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PairingService.swift; sourceTree = "<group>"; };
+		B00100162900000100000001 /* RemoteService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteService.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -105,6 +111,9 @@
 				B00100052900000100000001 /* GoogleTVConstants.swift */,
 				B00100062900000100000001 /* GoogleTVClient.swift */,
 				B00100122900000100000001 /* GoogleTVDiscovery.swift */,
+				B00100142900000100000001 /* CertificateStore.swift */,
+				B00100152900000100000001 /* PairingService.swift */,
+				B00100162900000100000001 /* RemoteService.swift */,
 			);
 			path = Core;
 			sourceTree = "<group>";
@@ -196,6 +205,9 @@
 				A00100102900000100000001 /* HapticManager.swift in Sources */,
 				A00100112900000100000001 /* GoogleTVDiscovery.swift in Sources */,
 				A00100122900000100000001 /* DevicePickerSheet.swift in Sources */,
+				A00100132900000100000001 /* CertificateStore.swift in Sources */,
+				A00100142900000100000001 /* PairingService.swift in Sources */,
+				A00100152900000100000001 /* RemoteService.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

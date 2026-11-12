@@ -3,20 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Remote TV - Preview Blanco</title>
+    <title>Remote TV - Modern White (iPhone 6 Plus)</title>
     <style>
         :root {
-            --bg-canvas: #e9ecf0;
+            --bg-canvas: #e6e9ee;
             --phone-bg: #f6f7fa;
             --surface: #ffffff;
             --surface-pressed: #eef0f4;
             --border: #e2e6ec;
+            --divider: #ebeef2;
             --icon-dark: #212529;
             --text-muted: #788291;
             --power-red: #ef4444;
             --connected-green: #22c55e;
-            --shadow-soft: 0 4px 16px rgba(20, 30, 50, 0.07);
-            --shadow-btn: 0 3px 8px rgba(20, 30, 50, 0.05);
+            --shadow-soft: 0 6px 20px rgba(20, 30, 50, 0.08);
+            --shadow-btn: 0 4px 10px rgba(20, 30, 50, 0.06);
         }
 
         * {
@@ -33,17 +34,17 @@
             align-items: center;
             justify-content: center;
             min-height: 100vh;
-            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, sans-serif;
             padding: 20px;
         }
 
-        /* Chasis del iPhone 6 (375 x 667 pt) */
+        /* Dimensiones reales del iPhone 6 Plus (414 x 736 pt) */
         .iphone-frame {
-            width: 375px;
-            height: 667px;
+            width: 414px;
+            height: 736px;
             background-color: var(--phone-bg);
-            border-radius: 40px;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 10px #ffffff;
+            border-radius: 44px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.28), 0 0 0 12px #ffffff;
             position: relative;
             display: flex;
             flex-direction: column;
@@ -51,14 +52,13 @@
             border: 1px solid var(--border);
         }
 
-        /* Barra de estado simulada */
         .status-bar {
-            height: 24px;
+            height: 28px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 0 24px;
-            font-size: 11px;
+            padding: 0 28px;
+            font-size: 12px;
             font-weight: 600;
             color: var(--icon-dark);
         }
@@ -67,26 +67,26 @@
             flex: 1;
             display: flex;
             flex-direction: column;
-            padding: 12px 24px 28px 24px;
+            padding: 12px 28px 24px 28px;
             justify-content: space-between;
         }
 
-        /* 1. Header */
+        /* Header */
         .header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            height: 44px;
+            height: 48px;
         }
 
         .status-pill {
             background: var(--surface);
             border: 1px solid var(--border);
-            border-radius: 20px;
-            padding: 8px 16px;
+            border-radius: 22px;
+            padding: 10px 18px;
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 10px;
             box-shadow: var(--shadow-btn);
             cursor: pointer;
             transition: all 0.2s ease;
@@ -98,26 +98,31 @@
         }
 
         .status-dot {
-            width: 8px;
-            height: 8px;
+            width: 9px;
+            height: 9px;
             border-radius: 50%;
             background: var(--connected-green);
         }
 
         .status-text {
-            font-size: 13px;
-            font-weight: 600;
+            font-size: 14px;
+            font-weight: 700;
             color: var(--icon-dark);
         }
 
+        .status-chevron {
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
         .btn-power {
-            width: 44px;
-            height: 44px;
+            width: 46px;
+            height: 46px;
             border-radius: 16px;
             background: var(--surface);
             border: 1px solid var(--border);
             color: var(--power-red);
-            font-size: 20px;
+            font-size: 22px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -131,7 +136,7 @@
             background: var(--surface-pressed);
         }
 
-        /* 2. D-Pad Circular */
+        /* D-Pad Ampliado */
         .dpad-wrapper {
             display: flex;
             justify-content: center;
@@ -139,8 +144,8 @@
         }
 
         .dpad {
-            width: 220px;
-            height: 220px;
+            width: 246px;
+            height: 246px;
             border-radius: 50%;
             background: var(--surface);
             border: 1px solid var(--border);
@@ -156,7 +161,7 @@
             background: none;
             border: none;
             color: var(--icon-dark);
-            font-size: 18px;
+            font-size: 20px;
             cursor: pointer;
             display: flex;
             align-items: center;
@@ -169,19 +174,19 @@
             transform: scale(0.9);
         }
 
-        .dpad-up { top: 12px; left: 0; right: 0; height: 50px; }
-        .dpad-down { bottom: 12px; left: 0; right: 0; height: 50px; }
-        .dpad-left { left: 12px; top: 0; bottom: 0; width: 50px; }
-        .dpad-right { right: 12px; top: 0; bottom: 0; width: 50px; }
+        .dpad-up { top: 14px; left: 0; right: 0; height: 56px; }
+        .dpad-down { bottom: 14px; left: 0; right: 0; height: 56px; }
+        .dpad-left { left: 14px; top: 0; bottom: 0; width: 56px; }
+        .dpad-right { right: 14px; top: 0; bottom: 0; width: 56px; }
 
         .dpad-center {
-            width: 90px;
-            height: 90px;
+            width: 100px;
+            height: 100px;
             border-radius: 50%;
             background: var(--surface);
             border: 1px solid var(--border);
             box-shadow: var(--shadow-btn);
-            font-size: 18px;
+            font-size: 20px;
             font-weight: 700;
             color: var(--icon-dark);
             cursor: pointer;
@@ -197,22 +202,22 @@
             background: var(--surface-pressed);
         }
 
-        /* 3. Fila de Navegación */
+        /* Fila de Navegación Ampliada (64x64 pt) */
         .nav-row {
             display: flex;
             justify-content: space-around;
             align-items: center;
-            padding: 0 10px;
+            padding: 0 16px;
         }
 
-        .btn-round {
-            width: 56px;
-            height: 56px;
+        .btn-round-large {
+            width: 64px;
+            height: 64px;
             border-radius: 50%;
             background: var(--surface);
             border: 1px solid var(--border);
             color: var(--icon-dark);
-            font-size: 22px;
+            font-size: 24px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -221,33 +226,70 @@
             transition: all 0.15s ease;
         }
 
-        .btn-round:active {
+        .btn-round-large:active {
             transform: scale(0.92);
             background: var(--surface-pressed);
         }
 
-        /* 4. Panel Inferior */
+        /* Panel Inferior Moderno (Cápsulas) */
         .bottom-panel {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             padding: 0 10px;
+            margin-bottom: 6px;
         }
 
-        .vol-column {
+        .capsule {
+            width: 70px;
+            height: 144px;
+            border-radius: 35px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow-btn);
             display: flex;
             flex-direction: column;
-            gap: 10px;
+            overflow: hidden;
         }
 
-        .btn-pill {
-            height: 48px;
-            border-radius: 24px;
+        .capsule-btn {
+            flex: 1;
+            background: none;
+            border: none;
+            color: var(--icon-dark);
+            font-size: 22px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.15s ease;
+        }
+
+        .capsule-btn:active {
+            background: var(--surface-pressed);
+        }
+
+        .capsule-divider {
+            height: 1px;
+            background: var(--divider);
+            margin: 0 14px;
+        }
+
+        .center-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .btn-round-med {
+            width: 58px;
+            height: 58px;
+            border-radius: 50%;
             background: var(--surface);
             border: 1px solid var(--border);
             color: var(--icon-dark);
-            font-size: 14px;
-            font-weight: 600;
+            font-size: 20px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -256,38 +298,24 @@
             transition: all 0.15s ease;
         }
 
-        .btn-pill:active {
-            transform: scale(0.94);
+        .btn-round-med:active {
+            transform: scale(0.92);
             background: var(--surface-pressed);
         }
 
-        .action-column {
-            display: flex;
-            justify-content: space-around;
-            align-items: center;
-        }
-
-        .action-column .btn-round {
-            width: 50px;
-            height: 50px;
-            font-size: 18px;
-        }
-
-        .label-toast {
+        .toast-label {
             text-align: center;
             font-size: 11px;
             color: var(--text-muted);
-            letter-spacing: 0.5px;
-            text-transform: uppercase;
             font-weight: 600;
-            margin-top: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
     </style>
 </head>
 <body>
 
     <div class="iphone-frame">
-        <!-- Barra de estado -->
         <div class="status-bar">
             <span>9:41</span>
             <span>LTE • 100%</span>
@@ -296,64 +324,68 @@
         <div class="remote-container">
             <!-- Header -->
             <div class="header">
-                <div class="status-pill" onclick="promptIP()">
+                <div class="status-pill" onclick="alert('Selector de TVs')">
                     <div class="status-dot"></div>
-                    <span class="status-text" id="statusLabel">Google TV (192.168.1.50)</span>
+                    <span class="status-text">Living Room TV</span>
+                    <span class="status-chevron">▾</span>
                 </div>
                 <button class="btn-power" onclick="sendCmd('POWER')">⏻</button>
             </div>
 
-            <!-- D-Pad Circular -->
+            <!-- D-Pad Central Ampliado -->
             <div class="dpad-wrapper">
                 <div class="dpad">
                     <button class="dpad-dir dpad-up" onclick="sendCmd('DPAD_UP')">▲</button>
                     <button class="dpad-dir dpad-down" onclick="sendCmd('DPAD_DOWN')">▼</button>
                     <button class="dpad-dir dpad-left" onclick="sendCmd('DPAD_LEFT')">◀</button>
                     <button class="dpad-dir dpad-right" onclick="sendCmd('DPAD_RIGHT')">▶</button>
-                    <button class="dpad-center" onclick="sendCmd('DPAD_CENTER')">OK</button>
+                    <button class="dpad-center" onclick="sendCmd('OK')">OK</button>
                 </div>
             </div>
 
-            <!-- Fila de Navegación -->
+            <!-- Fila de Navegación Ampliada -->
             <div class="nav-row">
-                <button class="btn-round" title="Atrás" onclick="sendCmd('BACK')">‹</button>
-                <button class="btn-round" title="Inicio" onclick="sendCmd('HOME')">⌂</button>
-                <button class="btn-round" title="Menú" onclick="sendCmd('MENU')">≡</button>
+                <button class="btn-round-large" title="Atrás" onclick="sendCmd('BACK')">‹</button>
+                <button class="btn-round-large" title="Inicio" onclick="sendCmd('HOME')">⌂</button>
+                <button class="btn-round-large" title="Menú" onclick="sendCmd('MENU')">≡</button>
             </div>
 
-            <!-- Panel de Volumen y Acciones -->
+            <!-- Panel Inferior Moderno -->
             <div class="bottom-panel">
-                <div class="vol-column">
-                    <button class="btn-pill" onclick="sendCmd('VOLUME_UP')">VOL +</button>
-                    <button class="btn-pill" onclick="sendCmd('VOLUME_DOWN')">VOL −</button>
+                <!-- Cápsula de Volumen -->
+                <div class="capsule">
+                    <button class="capsule-btn" onclick="sendCmd('VOL+')">+</button>
+                    <div class="capsule-divider"></div>
+                    <button class="capsule-btn" onclick="sendCmd('VOL-')">−</button>
                 </div>
-                <div class="action-column">
-                    <button class="btn-round" title="Silencio" onclick="sendCmd('MUTE')">🔇</button>
-                    <button class="btn-round" title="Play/Pause" onclick="sendCmd('PLAY_PAUSE')">⏯</button>
+
+                <!-- Acciones Centrales -->
+                <div class="center-actions">
+                    <button class="btn-round-med" title="Play/Pause" onclick="sendCmd('PLAY/PAUSE')">⏯</button>
+                    <button class="btn-round-med" title="Silencio" onclick="sendCmd('MUTE')">🔇</button>
+                </div>
+
+                <!-- Cápsula de Canales -->
+                <div class="capsule">
+                    <button class="capsule-btn" onclick="sendCmd('CH+')">▲</button>
+                    <div class="capsule-divider"></div>
+                    <button class="capsule-btn" onclick="sendCmd('CH-')">▼</button>
                 </div>
             </div>
 
-            <div class="label-toast" id="toastMessage">Listo • Pulsa cualquier botón</div>
+            <div class="toast-label" id="toastMessage">Listo • Pulsa cualquier botón</div>
         </div>
     </div>
 
     <script>
         function sendCmd(cmd) {
             const toast = document.getElementById('toastMessage');
-            toast.textContent = "Comando enviado: " + cmd;
+            toast.textContent = "Comando: " + cmd;
             toast.style.color = "#007aff";
             setTimeout(() => {
                 toast.textContent = "Listo • Pulsa cualquier botón";
                 toast.style.color = "var(--text-muted)";
             }, 1000);
-        }
-
-        function promptIP() {
-            const current = document.getElementById('statusLabel').textContent;
-            const newIP = prompt("Introduce la IP de tu Google TV:", "192.168.1.50");
-            if (newIP) {
-                document.getElementById('statusLabel').textContent = "Google TV (" + newIP + ")";
-            }
         }
     </script>
 </body>

@@ -2,7 +2,7 @@ import UIKit
 
 class RemoteViewController: UIViewController, DPadViewDelegate, GoogleTVClientDelegate, DevicePickerDelegate {
 
-    // MARK: - Subviews
+    // MARK: - Componentes de Cabecera
     private let headerView = UIView()
     private let statusPill = UIButton(type: .custom)
     private let statusDot = UIView()
@@ -10,16 +10,25 @@ class RemoteViewController: UIViewController, DPadViewDelegate, GoogleTVClientDe
     private let statusChevron = UILabel()
     private let powerButton = RemoteButton(title: "⏻", style: .power)
     
+    // MARK: - D-Pad Central
     private let dpadView = DPadView()
     
-    // Fila de navegación central
+    // MARK: - Fila de Navegación (Atrás, Inicio, Menú)
     private let backButton = RemoteButton(title: "‹", style: .round)
     private let homeButton = RemoteButton(title: "⌂", style: .round)
     private let menuButton = RemoteButton(title: "≡", style: .round)
     
-    // Fila inferior de controles (Volumen y Medios)
-    private let volUpButton = RemoteButton(title: "VOL +", style: .pill)
-    private let volDownButton = RemoteButton(title: "VOL −", style: .pill)
+    // MARK: - Panel Inferior Estilo Apple/Google TV Remote (Cápsulas Ergonómicas)
+    private let volumeCapsule = UIView()
+    private let volUpButton = UIButton(type: .custom)
+    private let volDivider = UIView()
+    private let volDownButton = UIButton(type: .custom)
+    
+    private let channelCapsule = UIView()
+    private let chUpButton = UIButton(type: .custom)
+    private let chDivider = UIView()
+    private let chDownButton = UIButton(type: .custom)
+    
     private let muteButton = RemoteButton(title: "🔇", style: .round)
     private let playPauseButton = RemoteButton(title: "⏯", style: .round)
 
@@ -37,11 +46,13 @@ class RemoteViewController: UIViewController, DPadViewDelegate, GoogleTVClientDe
         setupActions()
         updateStatusUI(client.currentStatus)
         
-        // Iniciar búsqueda automática de televisores en la red local
+        // Iniciar escaneo automático en segundo plano
         client.startAutoDiscovery()
     }
 
     private func setupLayout() {
+        let guide = view.safeAreaLayoutGuide
+        
         // 1. Barra Superior (Header)
         headerView.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(headerView)
@@ -49,7 +60,7 @@ class RemoteViewController: UIViewController, DPadViewDelegate, GoogleTVClientDe
         statusPill.backgroundColor = Theme.Colors.surface
         statusPill.layer.borderColor = Theme.Colors.border.cgColor
         statusPill.layer.borderWidth = 1.0
-        statusPill.layer.cornerRadius = 18.0
+        statusPill.layer.cornerRadius = 21.0
         Theme.Shadows.applyButtonShadow(to: statusPill.layer)
         statusPill.translatesAutoresizingMaskIntoConstraints = false
         headerView.addSubview(statusPill)
@@ -58,13 +69,13 @@ class RemoteViewController: UIViewController, DPadViewDelegate, GoogleTVClientDe
         statusDot.translatesAutoresizingMaskIntoConstraints = false
         statusPill.addSubview(statusDot)
         
-        statusLabel.font = UIFont.systemFont(ofSize: 13, weight: .semibold)
+        statusLabel.font = UIFont.systemFont(ofSize: 14, weight: .bold)
         statusLabel.textColor = Theme.Colors.textPrimary
         statusLabel.translatesAutoresizingMaskIntoConstraints = false
         statusPill.addSubview(statusLabel)
 
         statusChevron.text = "▾"
-        statusChevron.font = UIFont.systemFont(ofSize: 12, weight: .medium)
+        statusChevron.font = UIFont.systemFont(ofSize: 13, weight: .semibold)
         statusChevron.textColor = Theme.Colors.textSecondary
         statusChevron.translatesAutoresizingMaskIntoConstraints = false
         statusPill.addSubview(statusChevron)
@@ -72,11 +83,11 @@ class RemoteViewController: UIViewController, DPadViewDelegate, GoogleTVClientDe
         powerButton.translatesAutoresizingMaskIntoConstraints = false
         headerView.addSubview(powerButton)
         
-        // 2. D-Pad (Cruceta central)
+        // 2. D-Pad Circular Central
         dpadView.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(dpadView)
         
-        // 3. Fila de Navegación (Back, Home, Menu)
+        // 3. Fila de Navegación (Atrás, Inicio, Menú) - Botones Ampliados (64x64 pt)
         let navStack = UIStackView(arrangedSubviews: [backButton, homeButton, menuButton])
         navStack.axis = .horizontal
         navStack.distribution = .equalSpacing
@@ -84,94 +95,163 @@ class RemoteViewController: UIViewController, DPadViewDelegate, GoogleTVClientDe
         navStack.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(navStack)
         
-        // 4. Panel Inferior (Volumen y Controles de Medios)
-        let volStack = UIStackView(arrangedSubviews: [volUpButton, volDownButton])
-        volStack.axis = .vertical
-        volStack.spacing = 10
-        volStack.distribution = .fillEqually
-        volStack.translatesAutoresizingMaskIntoConstraints = false
+        // 4. Panel Inferior Moderno (Cápsula de Volumen + Centro Multimedia + Cápsula de Canales)
+        setupCapsule(volumeCapsule, upBtn: volUpButton, divider: volDivider, downBtn: volDownButton, upTitle: "+", downTitle: "−")
+        setupCapsule(channelCapsule, upBtn: chUpButton, divider: chDivider, downBtn: chDownButton, upTitle: "▲", downTitle: "▼")
         
-        let actionsStack = UIStackView(arrangedSubviews: [muteButton, playPauseButton])
-        actionsStack.axis = .horizontal
-        actionsStack.spacing = 16
-        actionsStack.distribution = .fillEqually
-        actionsStack.translatesAutoresizingMaskIntoConstraints = false
-        
-        let bottomContainer = UIStackView(arrangedSubviews: [volStack, actionsStack])
-        bottomContainer.axis = .horizontal
-        bottomContainer.distribution = .fillEqually
-        bottomContainer.spacing = 24
-        bottomContainer.alignment = .center
-        bottomContainer.translatesAutoresizingMaskIntoConstraints = false
-        view.addSubview(bottomContainer)
+        let centerActions = UIStackView(arrangedSubviews: [playPauseButton, muteButton])
+        centerActions.axis = .vertical
+        centerActions.spacing = 20
+        centerActions.alignment = .center
+        centerActions.distribution = .fillEqually
+        centerActions.translatesAutoresizingMaskIntoConstraints = false
 
-        // Restricciones adaptadas tanto para iPhone 6 Plus (414x736 pt) como iPhone 6 normal
-        let guide = view.safeAreaLayoutGuide
-        let isPlusOrLarge = UIScreen.main.bounds.width >= 414
-        let dpadDimension: CGFloat = isPlusOrLarge ? 230 : 210
-        let buttonDimension: CGFloat = isPlusOrLarge ? 58 : 52
-        
+        let bottomControlsStack = UIStackView(arrangedSubviews: [volumeCapsule, centerActions, channelCapsule])
+        bottomControlsStack.axis = .horizontal
+        bottomControlsStack.distribution = .equalSpacing
+        bottomControlsStack.alignment = .center
+        bottomControlsStack.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(bottomControlsStack)
+
+        // Restricciones AutoLayout amplias para la pantalla 5.5" de 414x736 pt del iPhone 6 Plus
+        let navBtnSize: CGFloat = 64
+        let dpadSize: CGFloat = 246
+        let capsuleWidth: CGFloat = 70
+        let capsuleHeight: CGFloat = 144
+        let actionBtnSize: CGFloat = 58
+
         NSLayoutConstraint.activate([
             // Header
-            headerView.topAnchor.constraint(equalTo: guide.topAnchor, constant: 12),
-            headerView.leadingAnchor.constraint(equalTo: guide.leadingAnchor, constant: 20),
-            headerView.trailingAnchor.constraint(equalTo: guide.trailingAnchor, constant: -20),
-            headerView.heightAnchor.constraint(equalToConstant: 44),
+            headerView.topAnchor.constraint(equalTo: guide.topAnchor, constant: 14),
+            headerView.leadingAnchor.constraint(equalTo: guide.leadingAnchor, constant: 24),
+            headerView.trailingAnchor.constraint(equalTo: guide.trailingAnchor, constant: -24),
+            headerView.heightAnchor.constraint(equalToConstant: 48),
             
-            // Status Pill
+            // Píldora de Estado
             statusPill.leadingAnchor.constraint(equalTo: headerView.leadingAnchor),
             statusPill.centerYAnchor.constraint(equalTo: headerView.centerYAnchor),
-            statusPill.heightAnchor.constraint(equalToConstant: 38),
-            statusPill.trailingAnchor.constraint(lessThanOrEqualTo: powerButton.leadingAnchor, constant: -12),
+            statusPill.heightAnchor.constraint(equalToConstant: 42),
+            statusPill.trailingAnchor.constraint(lessThanOrEqualTo: powerButton.leadingAnchor, constant: -16),
             
-            statusDot.leadingAnchor.constraint(equalTo: statusPill.leadingAnchor, constant: 12),
+            statusDot.leadingAnchor.constraint(equalTo: statusPill.leadingAnchor, constant: 14),
             statusDot.centerYAnchor.constraint(equalTo: statusPill.centerYAnchor),
-            statusDot.widthAnchor.constraint(equalToConstant: 8),
-            statusDot.heightAnchor.constraint(equalToConstant: 8),
+            statusDot.widthAnchor.constraint(equalToConstant: 9),
+            statusDot.heightAnchor.constraint(equalToConstant: 9),
             
-            statusLabel.leadingAnchor.constraint(equalTo: statusDot.trailingAnchor, constant: 8),
+            statusLabel.leadingAnchor.constraint(equalTo: statusDot.trailingAnchor, constant: 10),
             statusLabel.centerYAnchor.constraint(equalTo: statusPill.centerYAnchor),
 
-            statusChevron.leadingAnchor.constraint(equalTo: statusLabel.trailingAnchor, constant: 4),
-            statusChevron.trailingAnchor.constraint(equalTo: statusPill.trailingAnchor, constant: -12),
+            statusChevron.leadingAnchor.constraint(equalTo: statusLabel.trailingAnchor, constant: 6),
+            statusChevron.trailingAnchor.constraint(equalTo: statusPill.trailingAnchor, constant: -14),
             statusChevron.centerYAnchor.constraint(equalTo: statusPill.centerYAnchor),
             
             // Power Button
             powerButton.trailingAnchor.constraint(equalTo: headerView.trailingAnchor),
             powerButton.centerYAnchor.constraint(equalTo: headerView.centerYAnchor),
-            powerButton.widthAnchor.constraint(equalToConstant: 44),
-            powerButton.heightAnchor.constraint(equalToConstant: 44),
+            powerButton.widthAnchor.constraint(equalToConstant: 46),
+            powerButton.heightAnchor.constraint(equalToConstant: 46),
             
-            // D-Pad
-            dpadView.topAnchor.constraint(equalTo: headerView.bottomAnchor, constant: isPlusOrLarge ? 35 : 20),
+            // D-Pad Central
+            dpadView.topAnchor.constraint(equalTo: headerView.bottomAnchor, constant: 28),
             dpadView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            dpadView.widthAnchor.constraint(equalToConstant: dpadDimension),
-            dpadView.heightAnchor.constraint(equalToConstant: dpadDimension),
+            dpadView.widthAnchor.constraint(equalToConstant: dpadSize),
+            dpadView.heightAnchor.constraint(equalToConstant: dpadSize),
             
             // Fila de Navegación
-            navStack.topAnchor.constraint(equalTo: dpadView.bottomAnchor, constant: isPlusOrLarge ? 35 : 22),
-            navStack.leadingAnchor.constraint(equalTo: guide.leadingAnchor, constant: isPlusOrLarge ? 48 : 36),
-            navStack.trailingAnchor.constraint(equalTo: guide.trailingAnchor, constant: isPlusOrLarge ? -48 : -36),
-            navStack.heightAnchor.constraint(equalToConstant: buttonDimension),
+            navStack.topAnchor.constraint(equalTo: dpadView.bottomAnchor, constant: 28),
+            navStack.leadingAnchor.constraint(equalTo: guide.leadingAnchor, constant: 44),
+            navStack.trailingAnchor.constraint(equalTo: guide.trailingAnchor, constant: -44),
+            navStack.heightAnchor.constraint(equalToConstant: navBtnSize),
             
-            backButton.widthAnchor.constraint(equalToConstant: buttonDimension),
-            backButton.heightAnchor.constraint(equalToConstant: buttonDimension),
-            homeButton.widthAnchor.constraint(equalToConstant: buttonDimension),
-            homeButton.heightAnchor.constraint(equalToConstant: buttonDimension),
-            menuButton.widthAnchor.constraint(equalToConstant: buttonDimension),
-            menuButton.heightAnchor.constraint(equalToConstant: buttonDimension),
+            backButton.widthAnchor.constraint(equalToConstant: navBtnSize),
+            backButton.heightAnchor.constraint(equalToConstant: navBtnSize),
+            homeButton.widthAnchor.constraint(equalToConstant: navBtnSize),
+            homeButton.heightAnchor.constraint(equalToConstant: navBtnSize),
+            menuButton.widthAnchor.constraint(equalToConstant: navBtnSize),
+            menuButton.heightAnchor.constraint(equalToConstant: navBtnSize),
             
-            // Contenedor inferior (Volumen y Medios)
-            bottomContainer.topAnchor.constraint(equalTo: navStack.bottomAnchor, constant: isPlusOrLarge ? 35 : 22),
-            bottomContainer.leadingAnchor.constraint(equalTo: guide.leadingAnchor, constant: isPlusOrLarge ? 40 : 28),
-            bottomContainer.trailingAnchor.constraint(equalTo: guide.trailingAnchor, constant: isPlusOrLarge ? -40 : -28),
-            bottomContainer.heightAnchor.constraint(equalToConstant: 114),
+            // Contenedor Inferior Moderno
+            bottomControlsStack.topAnchor.constraint(equalTo: navStack.bottomAnchor, constant: 32),
+            bottomControlsStack.leadingAnchor.constraint(equalTo: guide.leadingAnchor, constant: 36),
+            bottomControlsStack.trailingAnchor.constraint(equalTo: guide.trailingAnchor, constant: -36),
+            bottomControlsStack.bottomAnchor.constraint(lessThanOrEqualTo: guide.bottomAnchor, constant: -18),
             
-            muteButton.widthAnchor.constraint(equalToConstant: buttonDimension),
-            muteButton.heightAnchor.constraint(equalToConstant: buttonDimension),
-            playPauseButton.widthAnchor.constraint(equalToConstant: buttonDimension),
-            playPauseButton.heightAnchor.constraint(equalToConstant: buttonDimension),
+            volumeCapsule.widthAnchor.constraint(equalToConstant: capsuleWidth),
+            volumeCapsule.heightAnchor.constraint(equalToConstant: capsuleHeight),
+            
+            channelCapsule.widthAnchor.constraint(equalToConstant: capsuleWidth),
+            channelCapsule.heightAnchor.constraint(equalToConstant: capsuleHeight),
+            
+            muteButton.widthAnchor.constraint(equalToConstant: actionBtnSize),
+            muteButton.heightAnchor.constraint(equalToConstant: actionBtnSize),
+            playPauseButton.widthAnchor.constraint(equalToConstant: actionBtnSize),
+            playPauseButton.heightAnchor.constraint(equalToConstant: actionBtnSize),
         ])
+    }
+
+    private func setupCapsule(_ capsule: UIView, upBtn: UIButton, divider: UIView, downBtn: UIButton, upTitle: String, downTitle: String) {
+        capsule.backgroundColor = Theme.Colors.surface
+        capsule.layer.borderColor = Theme.Colors.border.cgColor
+        capsule.layer.borderWidth = 1.0
+        capsule.layer.cornerRadius = 35.0
+        capsule.clipsToBounds = true
+        Theme.Shadows.applyButtonShadow(to: capsule.layer)
+        capsule.translatesAutoresizingMaskIntoConstraints = false
+
+        upBtn.setTitle(upTitle, for: .normal)
+        upBtn.setTitleColor(Theme.Colors.iconDark, for: .normal)
+        upBtn.titleLabel?.font = UIFont.systemFont(ofSize: 22, weight: .semibold)
+        upBtn.translatesAutoresizingMaskIntoConstraints = false
+        capsule.addSubview(upBtn)
+
+        divider.backgroundColor = Theme.Colors.divider
+        divider.translatesAutoresizingMaskIntoConstraints = false
+        capsule.addSubview(divider)
+
+        downBtn.setTitle(downTitle, for: .normal)
+        downBtn.setTitleColor(Theme.Colors.iconDark, for: .normal)
+        downBtn.titleLabel?.font = UIFont.systemFont(ofSize: 22, weight: .semibold)
+        downBtn.translatesAutoresizingMaskIntoConstraints = false
+        capsule.addSubview(downBtn)
+
+        NSLayoutConstraint.activate([
+            upBtn.topAnchor.constraint(equalTo: capsule.topAnchor),
+            upBtn.leadingAnchor.constraint(equalTo: capsule.leadingAnchor),
+            upBtn.trailingAnchor.constraint(equalTo: capsule.trailingAnchor),
+            upBtn.bottomAnchor.constraint(equalTo: divider.topAnchor),
+
+            divider.centerYAnchor.constraint(equalTo: capsule.centerYAnchor),
+            divider.leadingAnchor.constraint(equalTo: capsule.leadingAnchor, constant: 14),
+            divider.trailingAnchor.constraint(equalTo: capsule.trailingAnchor, constant: -14),
+            divider.heightAnchor.constraint(equalToConstant: 1),
+
+            downBtn.topAnchor.constraint(equalTo: divider.bottomAnchor),
+            downBtn.leadingAnchor.constraint(equalTo: capsule.leadingAnchor),
+            downBtn.trailingAnchor.constraint(equalTo: capsule.trailingAnchor),
+            downBtn.bottomAnchor.constraint(equalTo: capsule.bottomAnchor),
+            downBtn.heightAnchor.constraint(equalTo: upBtn.heightAnchor)
+        ])
+
+        addTactileAction(to: upBtn)
+        addTactileAction(to: downBtn)
+    }
+
+    private func addTactileAction(to btn: UIButton) {
+        btn.addTarget(self, action: #selector(handleButtonPressDown(_:)), for: [.touchDown, .touchDragEnter])
+        btn.addTarget(self, action: #selector(handleButtonPressUp(_:)), for: [.touchUpInside, .touchUpOutside, .touchCancel])
+    }
+
+    @objc private func handleButtonPressDown(_ sender: UIButton) {
+        HapticManager.playTactileClick()
+        UIView.animate(withDuration: 0.1) {
+            sender.backgroundColor = Theme.Colors.surfacePressed
+        }
+    }
+
+    @objc private func handleButtonPressUp(_ sender: UIButton) {
+        UIView.animate(withDuration: 0.2) {
+            sender.backgroundColor = .clear
+        }
     }
 
     private func setupActions() {
@@ -184,6 +264,9 @@ class RemoteViewController: UIViewController, DPadViewDelegate, GoogleTVClientDe
         
         volUpButton.addTarget(self, action: #selector(didTapVolUp), for: .touchUpInside)
         volDownButton.addTarget(self, action: #selector(didTapVolDown), for: .touchUpInside)
+        chUpButton.addTarget(self, action: #selector(didTapChUp), for: .touchUpInside)
+        chDownButton.addTarget(self, action: #selector(didTapChDown), for: .touchUpInside)
+        
         muteButton.addTarget(self, action: #selector(didTapMute), for: .touchUpInside)
         playPauseButton.addTarget(self, action: #selector(didTapPlayPause), for: .touchUpInside)
     }
@@ -202,6 +285,8 @@ class RemoteViewController: UIViewController, DPadViewDelegate, GoogleTVClientDe
     @objc private func didTapMenu() { client.sendKey(.menu) }
     @objc private func didTapVolUp() { client.sendKey(.volumeUp) }
     @objc private func didTapVolDown() { client.sendKey(.volumeDown) }
+    @objc private func didTapChUp() { client.sendKey(.channelUp) }
+    @objc private func didTapChDown() { client.sendKey(.channelDown) }
     @objc private func didTapMute() { client.sendKey(.volumeMute) }
     @objc private func didTapPlayPause() { client.sendKey(.mediaPlayPause) }
 
@@ -215,7 +300,6 @@ class RemoteViewController: UIViewController, DPadViewDelegate, GoogleTVClientDe
         sheet.delegate = self
         sheet.devices = discovery.devices
         
-        // Si la lista está vacía, forzamos un refresco de escaneo
         if discovery.devices.isEmpty {
             discovery.startDiscovery()
         }
@@ -245,12 +329,15 @@ class RemoteViewController: UIViewController, DPadViewDelegate, GoogleTVClientDe
         case .searching:
             statusDot.backgroundColor = Theme.Colors.accent
             statusLabel.text = "Buscando TV..."
+        case .ready(let name):
+            statusDot.backgroundColor = Theme.Colors.connected
+            statusLabel.text = name
         case .connecting(let name):
             statusDot.backgroundColor = Theme.Colors.accent
             statusLabel.text = "Conectando (\(name))..."
         case .pairingRequired:
             statusDot.backgroundColor = Theme.Colors.power
-            statusLabel.text = "Ingresa PIN en TV"
+            statusLabel.text = "Ingresar PIN en TV"
         case .connected(let name):
             statusDot.backgroundColor = Theme.Colors.connected
             statusLabel.text = name
@@ -263,14 +350,14 @@ class RemoteViewController: UIViewController, DPadViewDelegate, GoogleTVClientDe
     private func showPairingDialog(for name: String) {
         let alert = UIAlertController(
             title: "Código en pantalla",
-            message: "Introduce el código PIN que aparece ahora mismo en tu \(name):",
+            message: "Introduce el código PIN que aparece en tu \(name):",
             preferredStyle: .alert
         )
         alert.addTextField { tf in
             tf.placeholder = "Código (ej. AB12CD)"
             tf.autocapitalizationType = .allCharacters
             tf.textAlignment = .center
-            tf.font = UIFont.systemFont(ofSize: 20, weight: .bold)
+            tf.font = UIFont.systemFont(ofSize: 22, weight: .bold)
         }
         alert.addAction(UIAlertAction(title: "Emparejar", style: .default, handler: { [weak self] _ in
             if let pin = alert.textFields?.first?.text?.trimmingCharacters(in: .whitespacesAndNewlines), !pin.isEmpty {
