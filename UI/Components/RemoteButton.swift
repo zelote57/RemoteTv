@@ -6,7 +6,6 @@ class RemoteButton: UIButton {
         case round
         case pill
         case squareRounded
-        case power
     }
 
     private let style: Style
@@ -37,15 +36,9 @@ class RemoteButton: UIButton {
         layer.borderColor = Theme.Colors.border.cgColor
         layer.borderWidth = 1.0
         
-        titleLabel?.font = UIFont.systemFont(ofSize: 15, weight: .semibold)
-        
-        if style == .power {
-            tintColor = Theme.Colors.power
-            setTitleColor(Theme.Colors.power, for: .normal)
-        } else {
-            tintColor = Theme.Colors.iconDark
-            setTitleColor(Theme.Colors.textPrimary, for: .normal)
-        }
+        titleLabel?.font = UIFont.systemFont(ofSize: 22, weight: .semibold)
+        tintColor = Theme.Colors.textPrimary
+        setTitleColor(Theme.Colors.textPrimary, for: .normal)
         
         Theme.Shadows.applyButtonShadow(to: layer)
     }
@@ -57,7 +50,7 @@ class RemoteButton: UIButton {
             layer.cornerRadius = bounds.width / 2.0
         case .pill:
             layer.cornerRadius = bounds.height / 2.0
-        case .squareRounded, .power:
+        case .squareRounded:
             layer.cornerRadius = 16.0
         }
     }

@@ -29,7 +29,7 @@ class DPadView: UIView {
     }
 
     private func setupView() {
-        backgroundColor = Theme.Colors.surface
+        backgroundColor = Theme.Colors.dpadOuter
         layer.borderColor = Theme.Colors.border.cgColor
         layer.borderWidth = 1.0
         Theme.Shadows.applySoftCard(to: layer)
@@ -40,9 +40,9 @@ class DPadView: UIView {
         configureDirectionButton(rightButton, title: "▶", action: #selector(didTapRight))
 
         centerButton.setTitle("OK", for: .normal)
-        centerButton.setTitleColor(Theme.Colors.iconDark, for: .normal)
+        centerButton.setTitleColor(Theme.Colors.textPrimary, for: .normal)
         centerButton.titleLabel?.font = UIFont.systemFont(ofSize: 17, weight: .bold)
-        centerButton.backgroundColor = Theme.Colors.surface
+        centerButton.backgroundColor = Theme.Colors.dpadCenter
         centerButton.layer.borderColor = Theme.Colors.border.cgColor
         centerButton.layer.borderWidth = 1.0
         Theme.Shadows.applyButtonShadow(to: centerButton.layer)
@@ -58,8 +58,8 @@ class DPadView: UIView {
 
     private func configureDirectionButton(_ button: UIButton, title: String, action: Selector) {
         button.setTitle(title, for: .normal)
-        button.setTitleColor(Theme.Colors.iconDark, for: .normal)
-        button.titleLabel?.font = UIFont.systemFont(ofSize: 16, weight: .semibold)
+        button.setTitleColor(Theme.Colors.textSecondary, for: .normal)
+        button.titleLabel?.font = UIFont.systemFont(ofSize: 15, weight: .semibold)
         button.addTarget(self, action: action, for: .touchUpInside)
         addPressAnimation(to: button)
     }
@@ -73,7 +73,7 @@ class DPadView: UIView {
         HapticManager.playTactileClick()
         
         UIView.animate(withDuration: 0.10) {
-            sender.transform = CGAffineTransform(scaleX: 0.92, y: 0.92)
+            sender.transform = CGAffineTransform(scaleX: 0.94, y: 0.94)
             sender.backgroundColor = Theme.Colors.surfacePressed
         }
     }
@@ -81,7 +81,7 @@ class DPadView: UIView {
     @objc private func btnUp(_ sender: UIButton) {
         UIView.animate(withDuration: 0.20, delay: 0, usingSpringWithDamping: 0.6, initialSpringVelocity: 0.8, options: [], animations: {
             sender.transform = .identity
-            sender.backgroundColor = sender == self.centerButton ? Theme.Colors.surface : .clear
+            sender.backgroundColor = sender == self.centerButton ? Theme.Colors.dpadCenter : .clear
         })
     }
 
@@ -90,7 +90,7 @@ class DPadView: UIView {
         let size = bounds.width
         layer.cornerRadius = size / 2.0
 
-        let centerSize: CGFloat = size * 0.40
+        let centerSize: CGFloat = size * 0.42
         let centerOrigin = (size - centerSize) / 2.0
         centerButton.frame = CGRect(x: centerOrigin, y: centerOrigin, width: centerSize, height: centerSize)
         centerButton.layer.cornerRadius = centerSize / 2.0

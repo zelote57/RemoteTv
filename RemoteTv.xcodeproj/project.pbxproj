@@ -22,6 +22,8 @@
 		A00100132900000100000001 /* CertificateStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = B00100142900000100000001 /* CertificateStore.swift */; };
 		A00100142900000100000001 /* PairingService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B00100152900000100000001 /* PairingService.swift */; };
 		A00100152900000100000001 /* RemoteService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B00100162900000100000001 /* RemoteService.swift */; };
+		A00100162900000100000001 /* PowerButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = B00100172900000100000001 /* PowerButton.swift */; };
+		A00100172900000100000001 /* VolumeCapsuleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B00100182900000100000001 /* VolumeCapsuleView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -42,6 +44,8 @@
 		B00100142900000100000001 /* CertificateStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CertificateStore.swift; sourceTree = "<group>"; };
 		B00100152900000100000001 /* PairingService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PairingService.swift; sourceTree = "<group>"; };
 		B00100162900000100000001 /* RemoteService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteService.swift; sourceTree = "<group>"; };
+		B00100172900000100000001 /* PowerButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PowerButton.swift; sourceTree = "<group>"; };
+		B00100182900000100000001 /* VolumeCapsuleView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VolumeCapsuleView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -92,6 +96,8 @@
 				B00100032900000100000001 /* RemoteButton.swift */,
 				B00100042900000100000001 /* DPadView.swift */,
 				B00100132900000100000001 /* DevicePickerSheet.swift */,
+				B00100172900000100000001 /* PowerButton.swift */,
+				B00100182900000100000001 /* VolumeCapsuleView.swift */,
 			);
 			path = Components;
 			sourceTree = "<group>";
@@ -208,6 +214,8 @@
 				A00100132900000100000001 /* CertificateStore.swift in Sources */,
 				A00100142900000100000001 /* PairingService.swift in Sources */,
 				A00100152900000100000001 /* RemoteService.swift in Sources */,
+				A00100162900000100000001 /* PowerButton.swift in Sources */,
+				A00100172900000100000001 /* VolumeCapsuleView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

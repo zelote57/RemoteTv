@@ -27,6 +27,7 @@ enum AndroidKeyCode: Int {
     
     case channelUp = 166
     case channelDown = 167
+    case tvInput = 178 // KEYCODE_TV_INPUT para cambiar entradas HDMI
 }
 
 enum ConnectionStatus: Equatable {

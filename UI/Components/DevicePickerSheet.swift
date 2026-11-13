@@ -20,7 +20,7 @@ class DevicePickerSheet: UIViewController, UITableViewDataSource, UITableViewDel
     private let titleLabel = UILabel()
     private let tableView = UITableView()
     private let emptyLabel = UILabel()
-    private let spinner = UIActivityIndicatorView(style: .gray)
+    private let spinner = UIActivityIndicatorView(style: .white)
 
     override func viewDidLoad() {
         super.viewDidLoad()
