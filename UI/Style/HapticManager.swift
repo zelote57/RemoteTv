@@ -3,15 +3,16 @@ import AudioToolbox
 
 struct HapticManager {
     static func playTactileClick() {
-        // En dispositivos modernos con Taptic Engine (iPhone 7, X, 14 Pro...)
+        // En dispositivos con Taptic Engine (iPhone 7, X, 14 Pro...)
         if #available(iOS 10.0, *) {
-            let generator = UIImpactFeedbackGenerator(style: .medium)
+            let generator = UIImpactFeedbackGenerator(style: .light)
             generator.prepare()
             generator.impactOccurred()
         }
         
-        // Soporte real de vibración para iPhone 6 / 6 Plus (motor ERM / chip Apple A8)
-        AudioServicesPlaySystemSound(SystemSoundID(kSystemSoundID_Vibrate))
+        // En iPhone 6 / 6 Plus: click táctil sutil del sistema (sonido nativo de teclado iOS 1104)
+        // Reemplaza la vibración larga de llamada (4095) que sonaba y vibraba demasiado fuerte
+        AudioServicesPlaySystemSound(1104)
     }
 
     static func playSuccess() {
@@ -20,6 +21,7 @@ struct HapticManager {
             generator.prepare()
             generator.notificationOccurred(.success)
         }
+        // Vibración física única al confirmar emparejamiento con éxito
         AudioServicesPlaySystemSound(SystemSoundID(kSystemSoundID_Vibrate))
     }
 }

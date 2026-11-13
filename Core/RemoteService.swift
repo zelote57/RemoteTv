@@ -75,15 +75,31 @@ class RemoteService: NSObject, StreamDelegate {
         )
 
         guard let r = readStream, let w = writeStream else {
-            delegate?.remoteServiceDidDisconnect(error: "No se pudo crear el socket")
+            delegate?.remoteServiceDidDisconnect(error: "No se pudo crear el socket hacia \(host):\(port)")
             return
         }
 
-        // Toll-free bridge: CFReadStream ↔ InputStream via NSInputStream
-        let inStream  = r.takeRetainedValue() as AnyObject as! InputStream
-        let outStream = w.takeRetainedValue() as AnyObject as! OutputStream
+        let unmanagedRead = r.takeRetainedValue()
+        let unmanagedWrite = w.takeRetainedValue()
 
-        applyTLSSettings(toInput: inStream, output: outStream)
+        guard let identity = CertificateStore.getClientIdentity() else {
+            print("[Remote] Error: Sin certificado de cliente")
+            delegate?.remoteServiceDidDisconnect(error: "No se pudo cargar el certificado de cliente (OSStatus \(CertificateStore.lastError))")
+            return
+        }
+
+        let certArray: NSArray = [identity]
+        let settings: NSDictionary = [
+            kCFStreamSSLIsServer: kCFBooleanFalse as Any,
+            kCFStreamSSLValidatesCertificateChain: kCFBooleanFalse as Any,
+            kCFStreamSSLCertificates: certArray,
+        ]
+
+        CFReadStreamSetProperty(unmanagedRead, CFStreamPropertyKey(kCFStreamPropertySSLSettings), settings)
+        CFWriteStreamSetProperty(unmanagedWrite, CFStreamPropertyKey(kCFStreamPropertySSLSettings), settings)
+
+        let inStream  = unmanagedRead as InputStream
+        let outStream = unmanagedWrite as OutputStream
 
         inStream.delegate  = self
         outStream.delegate = self
@@ -96,32 +112,6 @@ class RemoteService: NSObject, StreamDelegate {
         outputStream = outStream
 
         print("[Remote] Streams abiertos hacia \(host):\(port)")
-    }
-
-    private func applyTLSSettings(toInput inStream: InputStream, output outStream: OutputStream) {
-        guard let identity = CertificateStore.getClientIdentity() else {
-            print("[Remote] Error: Sin certificado de cliente")
-            delegate?.remoteServiceDidDisconnect(error: "No se pudo cargar el certificado de cliente")
-            return
-        }
-
-        // Nivel TLS
-        inStream.setProperty(StreamSocketSecurityLevel.negotiatedSSL.rawValue,
-                             forKey: Stream.PropertyKey.socketSecurityLevelKey)
-        outStream.setProperty(StreamSocketSecurityLevel.negotiatedSSL.rawValue,
-                              forKey: Stream.PropertyKey.socketSecurityLevelKey)
-
-        // SSL settings dict — usamos Any para evitar problemas de tipo CFString/NSString
-        let certArray = [identity] as AnyObject
-        let settings: NSDictionary = [
-            kCFStreamSSLIsServer: false,
-            kCFStreamSSLValidatesCertificateChain: false,
-            kCFStreamSSLCertificates: certArray,
-        ]
-
-        let key = Stream.PropertyKey(rawValue: kCFStreamPropertySSLSettings as String)
-        inStream.setProperty(settings, forKey: key)
-        outStream.setProperty(settings, forKey: key)
     }
 
     // MARK: - StreamDelegate

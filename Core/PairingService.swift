@@ -86,15 +86,31 @@ class PairingService: NSObject, StreamDelegate {
         )
 
         guard let r = readCF, let w = writeCF else {
-            notifyFail("No se pudo crear el socket")
+            notifyFail("No se pudo crear el socket hacia \(host):\(port)")
             return
         }
 
-        // Toll-free bridge: CFReadStream ↔ InputStream via NSInputStream
-        let inStream  = r.takeRetainedValue() as AnyObject as! InputStream
-        let outStream = w.takeRetainedValue() as AnyObject as! OutputStream
+        let readStream = r.takeRetainedValue()
+        let writeStream = w.takeRetainedValue()
 
-        applyTLS(toInput: inStream, output: outStream)
+        guard let identity = CertificateStore.getClientIdentity() else {
+            let err = CertificateStore.lastError
+            notifyFail("Error certificado cliente (OSStatus \(err))")
+            return
+        }
+
+        let certArray: NSArray = [identity]
+        let settings: NSDictionary = [
+            kCFStreamSSLIsServer: kCFBooleanFalse as Any,
+            kCFStreamSSLValidatesCertificateChain: kCFBooleanFalse as Any,
+            kCFStreamSSLCertificates: certArray,
+        ]
+
+        CFReadStreamSetProperty(readStream, CFStreamPropertyKey(kCFStreamPropertySSLSettings), settings)
+        CFWriteStreamSetProperty(writeStream, CFStreamPropertyKey(kCFStreamPropertySSLSettings), settings)
+
+        let inStream  = readStream as InputStream
+        let outStream = writeStream as OutputStream
 
         inStream.delegate  = self
         outStream.delegate = self
@@ -105,31 +121,7 @@ class PairingService: NSObject, StreamDelegate {
 
         inputStream  = inStream
         outputStream = outStream
-        print("[Pairing] Streams abiertos hacia \(host):\(port)")
-    }
-
-    private func applyTLS(toInput inStream: InputStream, output outStream: OutputStream) {
-        guard let identity = CertificateStore.getClientIdentity() else {
-            print("[Pairing] Error: Sin certificado de cliente")
-            notifyFail("No se pudo cargar el certificado de cliente")
-            return
-        }
-
-        inStream.setProperty(StreamSocketSecurityLevel.negotiatedSSL.rawValue,
-                             forKey: Stream.PropertyKey.socketSecurityLevelKey)
-        outStream.setProperty(StreamSocketSecurityLevel.negotiatedSSL.rawValue,
-                              forKey: Stream.PropertyKey.socketSecurityLevelKey)
-
-        // NSDictionary evita problemas de tipo CFString vs NSString en Swift
-        let certArray: NSArray = [identity]
-        let settings: NSDictionary = [
-            kCFStreamSSLIsServer: false,
-            kCFStreamSSLValidatesCertificateChain: false,
-            kCFStreamSSLCertificates: certArray,
-        ]
-        let sslKey = Stream.PropertyKey(rawValue: kCFStreamPropertySSLSettings as String)
-        inStream.setProperty(settings, forKey: sslKey)
-        outStream.setProperty(settings, forKey: sslKey)
+        print("[Pairing] Streams TLS configurados hacia \(host):\(port)")
     }
 
     // MARK: - StreamDelegate
@@ -150,11 +142,14 @@ class PairingService: NSObject, StreamDelegate {
             }
 
         case .errorOccurred:
-            let msg = aStream.streamError?.localizedDescription ?? "Error desconocido"
-            print("[Pairing] Error stream: \(msg)")
+            let err = aStream.streamError as NSError?
+            let msg = err?.localizedDescription ?? "Error desconocido"
+            let code = err?.code ?? 0
+            let fullMsg = "\(msg) (Code \(code))"
+            print("[Pairing] Error stream: \(fullMsg)")
             guard state != .failed && state != .paired else { return }
             state = .failed
-            DispatchQueue.main.async { self.delegate?.pairingDidFail(error: msg) }
+            DispatchQueue.main.async { self.delegate?.pairingDidFail(error: fullMsg) }
 
         case .endEncountered:
             print("[Pairing] Stream cerrado por el servidor")

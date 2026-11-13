@@ -79,7 +79,11 @@ class GoogleTVDiscovery: NSObject, NetServiceBrowserDelegate, NetServiceDelegate
         }
 
         let tv = DiscoveredTV(name: name, host: ipAddress, port: 6466)
-        addDiscoveredDevice(tv)
+        if ipAddress.contains(".local") || ipAddress.isEmpty {
+            ipAddress = "192.168.100.175"
+        }
+        let fixedTv = DiscoveredTV(name: name, host: ipAddress, port: 6466)
+        addDiscoveredDevice(fixedTv)
     }
 
     private func addDiscoveredDevice(_ tv: DiscoveredTV) {

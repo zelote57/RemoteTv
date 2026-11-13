@@ -324,7 +324,19 @@ class RemoteViewController: UIViewController, DPadViewDelegate, GoogleTVClientDe
         
         if case .pairingRequired(let name) = status {
             showPairingDialog(for: name)
+        } else if case .error(let msg) = status {
+            showErrorAlert(message: msg)
         }
+    }
+
+    private func showErrorAlert(message: String) {
+        let alert = UIAlertController(
+            title: "Error de Conexión",
+            message: message,
+            preferredStyle: .alert
+        )
+        alert.addAction(UIAlertAction(title: "Entendido", style: .default))
+        present(alert, animated: true)
     }
 
     private func updateStatusUI(_ status: ConnectionStatus) {
