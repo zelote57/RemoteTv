@@ -25,6 +25,9 @@ struct CertificateStore {
             return nil
         }
 
-        return firstItem[kSecImportItemIdentity as String] as? SecIdentity
+        if let rawIdentity = firstItem[kSecImportItemIdentity as String] {
+            return (rawIdentity as! SecIdentity)
+        }
+        return nil
     }
 }

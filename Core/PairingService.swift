@@ -166,13 +166,23 @@ class PairingService: NSObject, StreamDelegate {
     // MARK: - Certificado del servidor
 
     private func extractServerCert() {
-        let key = Stream.PropertyKey(rawValue: kCFStreamPropertySSLPeerCertificates as String)
-        guard let certs = inputStream?.property(forKey: key) as? [SecCertificate],
-              let first = certs.first else {
-            print("[Pairing] Cert servidor no disponible aún")
+        let key = Stream.PropertyKey(rawValue: kCFStreamPropertySSLPeerTrust as String)
+        guard let trustVal = inputStream?.property(forKey: key) else {
+            print("[Pairing] Trust del servidor no disponible aún")
             return
         }
-        serverCertData = SecCertificateCopyData(first) as Data
+        let trust = trustVal as! SecTrust
+        let cert: SecCertificate?
+        if #available(iOS 15.0, *) {
+            cert = (SecTrustCopyCertificateChain(trust) as? [SecCertificate])?.first
+        } else {
+            cert = SecTrustGetCertificateAtIndex(trust, 0)
+        }
+        guard let serverCert = cert else {
+            print("[Pairing] No se pudo obtener certificado del trust")
+            return
+        }
+        serverCertData = SecCertificateCopyData(serverCert) as Data
         print("[Pairing] Cert servidor capturado (\(serverCertData!.count) bytes)")
     }
 

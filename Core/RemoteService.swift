@@ -111,7 +111,7 @@ class RemoteService: NSObject, StreamDelegate {
                               forKey: Stream.PropertyKey.socketSecurityLevelKey)
 
         // SSL settings dict — usamos Any para evitar problemas de tipo CFString/NSString
-        var certArray = [identity] as AnyObject
+        let certArray = [identity] as AnyObject
         let settings: NSDictionary = [
             kCFStreamSSLIsServer: false,
             kCFStreamSSLValidatesCertificateChain: false,
