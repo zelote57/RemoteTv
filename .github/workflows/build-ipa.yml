@@ -2,7 +2,7 @@ name: Build RemoteTV IPA for iOS 12
 
 on:
   push:
-    branches: [ main, master ]
+    branches: [ main, master, 'feature/**' ]
   workflow_dispatch:
 
 jobs:
