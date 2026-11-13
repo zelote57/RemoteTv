@@ -1,6 +1,9 @@
-// RemoteService.swift — Google TV Remote Protocol (puerto 6466)
-// Envía KeyEvents via mTLS usando remotemessage.proto (proto3)
-// Compatible con iOS 12 — CFStream + TLS
+// RemoteService.swift — Google TV Remote Protocol v2 (puerto 6466)
+// Implementación completa del protocolo de control remoto Android TV Remote v2
+// Handshake: remote_configure (f1) → remote_set_active (f2) → remote_start (f40)
+// Keep-Alive: responde automáticamente a remote_ping_request (f8) con remote_ping_response (f9)
+// Inyección de teclas: remote_key_inject (f10) con dirección SHORT (3)
+// Compatible con iOS 12 puro (CFStream + TLS + Protobuf nativo)
 
 import Foundation
 import Security
@@ -26,68 +29,92 @@ class RemoteService: NSObject, StreamDelegate {
 
     private var readBuffer = Data()
     private var pendingWriteData = Data()
-    private var isConnected = false
-    private var sequenceNumber: Int = 1
+    private(set) var isReady = false
+
+    private enum HandshakeState {
+        case idle, connecting, receivedConfigure, active
+    }
+    private var handshakeState: HandshakeState = .idle
 
     // MARK: - API Pública
 
     func connect(host: String) {
-        guard !isConnected else { return }
+        if isReady && self.host == host {
+            print("[Remote] Ya conectado y listo hacia \(host)")
+            return
+        }
+        disconnect()
         self.host = host
-        pendingWriteData = Data()
+        self.handshakeState = .connecting
+        self.isReady = false
+        self.readBuffer = Data()
+        self.pendingWriteData = Data()
         openTLSStreams()
     }
 
     func sendKey(_ keyCode: AndroidKeyCode) {
-        guard isConnected else {
-            print("[Remote] No conectado — ignorando tecla \(keyCode)")
+        guard isReady else {
+            print("[Remote] Canal no listo — intentando conectar y encolando tecla \(keyCode)")
+            if handshakeState == .idle && !host.isEmpty {
+                connect(host: host)
+            }
             return
         }
-        let downMsg = buildKeyEventMessage(keyCode: keyCode, isDown: true)
-        send(data: downMsg)
 
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [weak self] in
-            guard let self = self else { return }
-            let upMsg = self.buildKeyEventMessage(keyCode: keyCode, isDown: false)
-            self.send(data: upMsg)
-        }
-        print("[Remote] KeyEvent \(keyCode) (\(keyCode.rawValue)) enviado")
+        // remote_key_inject (field 10):
+        //   field 1 (key_code): int (enum)
+        //   field 2 (direction): 3 (SHORT)
+        var inner = Data()
+        inner.append(protoVarint(field: 1, value: keyCode.rawValue))
+        inner.append(protoVarint(field: 2, value: 3)) // RemoteDirection.SHORT = 3
+
+        var outer = Data()
+        outer.append(protoBytes(field: 10, value: inner)) // remote_key_inject = 10
+
+        send(data: delimited(outer))
+        print("[Remote] 🎮 Tecla enviada: \(keyCode) (código \(keyCode.rawValue), SHORT)")
     }
 
     func disconnect() {
-        isConnected = false
+        isReady = false
+        handshakeState = .idle
         inputStream?.close()
         outputStream?.close()
+        inputStream?.remove(from: .main, forMode: .common)
+        outputStream?.remove(from: .main, forMode: .common)
+        inputStream?.delegate = nil
+        outputStream?.delegate = nil
         inputStream = nil
         outputStream = nil
-        pendingWriteData = Data()
+        readBuffer.removeAll()
+        pendingWriteData.removeAll()
     }
 
     // MARK: - CFStream con mTLS
 
     private func openTLSStreams() {
-        var readStream: Unmanaged<CFReadStream>?
-        var writeStream: Unmanaged<CFWriteStream>?
+        var readCF: Unmanaged<CFReadStream>?
+        var writeCF: Unmanaged<CFWriteStream>?
 
         CFStreamCreatePairWithSocketToHost(
             kCFAllocatorDefault,
             host as CFString,
             UInt32(port),
-            &readStream,
-            &writeStream
+            &readCF,
+            &writeCF
         )
 
-        guard let r = readStream, let w = writeStream else {
-            delegate?.remoteServiceDidDisconnect(error: "No se pudo crear el socket hacia \(host):\(port)")
+        guard let r = readCF, let w = writeCF else {
+            notifyDisconnect(error: "No se pudo crear el socket hacia \(host):\(port)")
             return
         }
 
-        let unmanagedRead = r.takeRetainedValue()
-        let unmanagedWrite = w.takeRetainedValue()
+        let readStream = r.takeRetainedValue()
+        let writeStream = w.takeRetainedValue()
 
         guard let identity = CertificateStore.getClientIdentity() else {
             print("[Remote] Error: Sin certificado de cliente")
-            delegate?.remoteServiceDidDisconnect(error: "No se pudo cargar el certificado de cliente (OSStatus \(CertificateStore.lastError))")
+            notifyDisconnect(error: "Error certificado cliente (OSStatus \(CertificateStore.lastError))")
             return
         }
 
@@ -98,11 +125,11 @@ class RemoteService: NSObject, StreamDelegate {
             kCFStreamSSLCertificates: certArray,
         ]
 
-        CFReadStreamSetProperty(unmanagedRead, CFStreamPropertyKey(kCFStreamPropertySSLSettings), settings)
-        CFWriteStreamSetProperty(unmanagedWrite, CFStreamPropertyKey(kCFStreamPropertySSLSettings), settings)
+        CFReadStreamSetProperty(readStream, CFStreamPropertyKey(kCFStreamPropertySSLSettings), settings)
+        CFWriteStreamSetProperty(writeStream, CFStreamPropertyKey(kCFStreamPropertySSLSettings), settings)
 
-        let inStream  = unmanagedRead as InputStream
-        let outStream = unmanagedWrite as OutputStream
+        let inStream  = readStream as InputStream
+        let outStream = writeStream as OutputStream
 
         inStream.delegate  = self
         outStream.delegate = self
@@ -114,7 +141,7 @@ class RemoteService: NSObject, StreamDelegate {
         inputStream  = inStream
         outputStream = outStream
 
-        print("[Remote] Streams abiertos hacia \(host):\(port)")
+        print("[Remote] Streams TLS abriéndose hacia \(host):\(port)…")
     }
 
     // MARK: - StreamDelegate
@@ -123,13 +150,14 @@ class RemoteService: NSObject, StreamDelegate {
         switch eventCode {
         case .openCompleted:
             if aStream === outputStream {
-                isConnected = true
-                print("[Remote] Conectado al puerto de control \(port)")
-                DispatchQueue.main.async { self.delegate?.remoteServiceDidConnect() }
+                print("[Remote] Socket TLS conectado a puerto 6466 — esperando remote_configure del TV")
+                flushPendingData()
             }
 
         case .hasBytesAvailable:
-            readAvailableBytes()
+            if aStream === inputStream {
+                readAvailableBytes()
+            }
 
         case .hasSpaceAvailable:
             if aStream === outputStream {
@@ -137,54 +165,151 @@ class RemoteService: NSObject, StreamDelegate {
             }
 
         case .errorOccurred:
-            let err = aStream.streamError?.localizedDescription ?? "Error desconocido"
-            print("[Remote] Error: \(err)")
-            isConnected = false
-            DispatchQueue.main.async { self.delegate?.remoteServiceDidDisconnect(error: err) }
+            let err = aStream.streamError as NSError?
+            let msg = err?.localizedDescription ?? "Error desconocido"
+            let code = err?.code ?? 0
+            print("[Remote] Error en stream: \(msg) (Code \(code))")
+            notifyDisconnect(error: msg)
 
         case .endEncountered:
             print("[Remote] Conexión cerrada por el TV")
-            isConnected = false
-            DispatchQueue.main.async { self.delegate?.remoteServiceDidDisconnect(error: nil) }
+            notifyDisconnect(error: nil)
 
         default:
             break
         }
     }
 
-    // MARK: - Lectura
+    // MARK: - Lectura y Procesamiento de Mensajes
 
     private func readAvailableBytes() {
         let bufSize = 4096
         var buf = [UInt8](repeating: 0, count: bufSize)
-        while let stream = inputStream, stream.hasBytesAvailable {
-            let n = stream.read(&buf, maxLength: bufSize)
-            if n > 0 {
-                readBuffer.append(contentsOf: buf[0..<n])
-            } else { break }
+        while let s = inputStream, s.hasBytesAvailable {
+            let n = s.read(&buf, maxLength: bufSize)
+            if n > 0 { readBuffer.append(contentsOf: buf[0..<n]) }
+            else { break }
         }
-        // Procesamos la respuesta del TV (acks, etc.) — por ahora solo la consumimos
-        readBuffer.removeAll()
+        processBuffer()
     }
 
-    // MARK: - Protobuf KeyEvent
+    private func processBuffer() {
+        while !readBuffer.isEmpty {
+            var off = 0
+            guard let msgLen = varintDecode(readBuffer, offset: &off) else { break }
+            let total = off + Int(msgLen)
+            guard readBuffer.count >= total else { break } // Espera el paquete completo
+            let msgData = readBuffer.subdata(in: off..<total)
+            readBuffer.removeSubrange(0..<total)
+            handleTVMessage(msgData)
+        }
+    }
 
-    private func buildKeyEventMessage(keyCode: AndroidKeyCode, isDown: Bool) -> Data {
-        let direction = isDown ? 1 : 2  // KEY_DOWN=1, KEY_UP=2
+    private func handleTVMessage(_ data: Data) {
+        let fields = protoParseFields(data)
+        let keys = fields.keys.sorted()
+        print("[Remote] ← TV envió mensaje (\(data.count) bytes, campos: \(keys))")
 
-        var inner = Data()
-        inner.append(protoVarint(field: 1, value: keyCode.rawValue))
-        inner.append(protoVarint(field: 2, value: direction))
+        // 1. remote_configure (field 1)
+        if fields[1] != nil {
+            print("[Remote] ← Recibido remote_configure — enviando respuesta de configuración")
+            sendConfigureReply()
+            handshakeState = .receivedConfigure
+        }
+
+        // 2. remote_set_active (field 2)
+        if fields[2] != nil {
+            print("[Remote] ← Recibido remote_set_active — enviando confirmación de activación")
+            sendSetActiveReply()
+            markReady()
+        }
+
+        // 3. remote_start (field 40)
+        if fields[40] != nil {
+            print("[Remote] ← Recibido remote_start — ¡Canal de control totalmente listo!")
+            markReady()
+        }
+
+        // 4. remote_set_volume_level (field 50)
+        if fields[50] != nil {
+            print("[Remote] ← Recibido estado de volumen del TV")
+            markReady()
+        }
+
+        // 5. remote_ping_request (field 8) → Responder de inmediato con remote_ping_response (field 9)
+        if let pingData = fields[8] {
+            var val1 = 0
+            let pingFields = protoParseFields(pingData)
+            if let v1Data = pingFields[1] {
+                var off = 0
+                val1 = Int(varintDecode(v1Data, offset: &off) ?? 0)
+            }
+            sendPingResponse(val1: val1)
+        }
+    }
+
+    private func markReady() {
+        guard !isReady else { return }
+        isReady = true
+        handshakeState = .active
+        print("[Remote] ✅ Canal de control activo y sincronizado")
+        DispatchQueue.main.async { self.delegate?.remoteServiceDidConnect() }
+    }
+
+    // MARK: - Respuestas del Handshake
+
+    private func sendConfigureReply() {
+        // device_info sub-message:
+        //   field 3 (unknown1): 1
+        //   field 4 (unknown2): "1"
+        //   field 5 (package_name): "atvremote"
+        //   field 6 (app_version): "1.0.0"
+        var devInfo = Data()
+        devInfo.append(protoVarint(field: 3, value: 1))
+        devInfo.append(protoString(field: 4, value: "1"))
+        devInfo.append(protoString(field: 5, value: "atvremote"))
+        devInfo.append(protoString(field: 6, value: "1.0.0"))
+
+        // remote_configure:
+        //   field 1 (code1): 611 (características activas)
+        //   field 2 (device_info): sub-message
+        var configMsg = Data()
+        configMsg.append(protoVarint(field: 1, value: 611))
+        configMsg.append(protoBytes(field: 2, value: devInfo))
 
         var outer = Data()
-        outer.append(protoVarint(field: 1, value: sequenceNumber))
-        outer.append(protoBytes(field: 12, value: inner))
-        sequenceNumber += 1
+        outer.append(protoBytes(field: 1, value: configMsg)) // remote_configure = 1
 
-        return delimited(outer)
+        send(data: delimited(outer))
+        print("[Remote] → Enviado remote_configure reply (code1: 611)")
     }
 
-    // MARK: - Envío con buffer
+    private func sendSetActiveReply() {
+        // remote_set_active:
+        //   field 1 (active): 611
+        var activeMsg = Data()
+        activeMsg.append(protoVarint(field: 1, value: 611))
+
+        var outer = Data()
+        outer.append(protoBytes(field: 2, value: activeMsg)) // remote_set_active = 2
+
+        send(data: delimited(outer))
+        print("[Remote] → Enviado remote_set_active reply (active: 611)")
+    }
+
+    private func sendPingResponse(val1: Int) {
+        // remote_ping_response:
+        //   field 1 (val1): val1 del request
+        var pingResp = Data()
+        pingResp.append(protoVarint(field: 1, value: val1))
+
+        var outer = Data()
+        outer.append(protoBytes(field: 9, value: pingResp)) // remote_ping_response = 9
+
+        send(data: delimited(outer))
+    }
+
+    // MARK: - Envío con Buffer
 
     private func send(data: Data) {
         pendingWriteData.append(data)
@@ -204,31 +329,44 @@ class RemoteService: NSObject, StreamDelegate {
         }
     }
 
+    private func notifyDisconnect(error: String?) {
+        let wasReady = isReady
+        isReady = false
+        handshakeState = .idle
+        if wasReady {
+            print("[Remote] Desconectado del TV: \(error ?? "normal")")
+        }
+        DispatchQueue.main.async { self.delegate?.remoteServiceDidDisconnect(error: error) }
+    }
+
     // MARK: - Protobuf Helpers
 
     private func protoVarint(field: Int, value: Int) -> Data {
         var d = Data()
-        d.append(encodeVarint(UInt64(bitPattern: Int64(field << 3 | 0))))
-        d.append(encodeVarint(UInt64(bitPattern: Int64(value))))
+        d.append(varintEncode(UInt64(bitPattern: Int64(field << 3 | 0))))
+        d.append(varintEncode(UInt64(bitPattern: Int64(value))))
         return d
     }
 
     private func protoBytes(field: Int, value: Data) -> Data {
         var d = Data()
-        d.append(encodeVarint(UInt64(bitPattern: Int64(field << 3 | 2))))
-        d.append(encodeVarint(UInt64(value.count)))
+        d.append(varintEncode(UInt64(bitPattern: Int64(field << 3 | 2))))
+        d.append(varintEncode(UInt64(value.count)))
         d.append(value)
         return d
     }
 
+    private func protoString(field: Int, value: String) -> Data {
+        protoBytes(field: field, value: Data(value.utf8))
+    }
+
     private func delimited(_ msg: Data) -> Data {
-        var d = Data()
-        d.append(encodeVarint(UInt64(msg.count)))
+        var d = varintEncode(UInt64(msg.count))
         d.append(msg)
         return d
     }
 
-    private func encodeVarint(_ value: UInt64) -> Data {
+    private func varintEncode(_ value: UInt64) -> Data {
         var v = value
         var result = Data()
         repeat {
@@ -238,5 +376,51 @@ class RemoteService: NSObject, StreamDelegate {
             result.append(byte)
         } while v != 0
         return result
+    }
+
+    private func varintDecode(_ data: Data, offset: inout Int) -> UInt64? {
+        var result: UInt64 = 0
+        var shift: UInt64 = 0
+        while offset < data.count {
+            let byte = data[offset]; offset += 1
+            result |= UInt64(byte & 0x7F) << shift
+            if byte & 0x80 == 0 { return result }
+            shift += 7
+            if shift >= 64 { return nil }
+        }
+        return nil
+    }
+
+    private func protoParseFields(_ data: Data) -> [Int: Data] {
+        var fields = [Int: Data]()
+        var idx = 0
+        while idx < data.count {
+            var off = idx
+            guard let tag = varintDecode(data, offset: &off) else { break }
+            let fieldNum = Int(tag >> 3)
+            let wireType = Int(tag & 0x07)
+            idx = off
+            switch wireType {
+            case 0:
+                var o2 = idx
+                guard varintDecode(data, offset: &o2) != nil else { return fields }
+                fields[fieldNum] = data.subdata(in: idx..<o2); idx = o2
+            case 2:
+                var o2 = idx
+                guard let len = varintDecode(data, offset: &o2) else { return fields }
+                let end = o2 + Int(len)
+                guard end <= data.count else { return fields }
+                fields[fieldNum] = data.subdata(in: o2..<end); idx = end
+            case 1:
+                guard idx + 8 <= data.count else { return fields }
+                fields[fieldNum] = data.subdata(in: idx..<(idx+8)); idx += 8
+            case 5:
+                guard idx + 4 <= data.count else { return fields }
+                fields[fieldNum] = data.subdata(in: idx..<(idx+4)); idx += 4
+            default:
+                return fields
+            }
+        }
+        return fields
     }
 }

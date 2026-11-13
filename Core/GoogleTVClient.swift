@@ -41,9 +41,15 @@ class GoogleTVClient: GoogleTVDiscoveryDelegate, PairingServiceDelegate, RemoteS
     // MARK: - Discovery
 
     func startAutoDiscovery() {
-        if let savedName = currentTVName {
-            // Mostramos la TV conocida de inmediato
-            currentStatus = .ready(savedName)
+        if let savedName = currentTVName, let savedHost = currentHost {
+            let isPaired = UserDefaults.standard.bool(forKey: "tv_paired_\(savedHost)")
+            if isPaired {
+                currentStatus = .ready(savedName)
+                // Conexión automática de fondo al canal de control
+                remoteService.connect(host: savedHost)
+            } else {
+                currentStatus = .ready(savedName)
+            }
         } else {
             currentStatus = .searching
         }
@@ -55,15 +61,16 @@ class GoogleTVClient: GoogleTVDiscoveryDelegate, PairingServiceDelegate, RemoteS
     func discoveryDidUpdateDevices(_ discovery: GoogleTVDiscovery, devices: [DiscoveredTV]) {
         guard let first = devices.first else { return }
 
-        // Actualizamos la TV detectada sin importar el estado anterior
         currentTVName = first.name
         currentHost   = first.host
 
-        // Solo salimos de "searching" si no estamos ya conectados/emparejando
         switch currentStatus {
         case .searching, .disconnected:
             currentStatus = .ready(first.name)
-            print("[Client] TV detectada: \(first.name) @ \(first.host)")
+            let isPaired = UserDefaults.standard.bool(forKey: "tv_paired_\(first.host)")
+            if isPaired {
+                remoteService.connect(host: first.host)
+            }
         default:
             break
         }
@@ -78,15 +85,12 @@ class GoogleTVClient: GoogleTVDiscoveryDelegate, PairingServiceDelegate, RemoteS
         UserDefaults.standard.set(tv.name, forKey: "saved_tv_name")
         UserDefaults.standard.set(tv.host, forKey: "saved_tv_ip")
 
-        currentStatus = .connecting(tv.name)
-        print("[Client] Iniciando conexión con \(tv.name) (\(tv.host))…")
-
         let isPaired = UserDefaults.standard.bool(forKey: "tv_paired_\(tv.host)")
         if isPaired {
-            // Ya emparejado → conectar directo al canal de control (puerto 6466)
+            currentStatus = .connecting(tv.name)
             remoteService.connect(host: tv.host)
         } else {
-            // Primera vez → pairing por puerto 6467 (Polo v2)
+            currentStatus = .connecting(tv.name)
             pairingService.startPairing(host: tv.host, port: Int(GoogleTVPorts.pairing))
         }
     }
@@ -109,7 +113,8 @@ class GoogleTVClient: GoogleTVDiscoveryDelegate, PairingServiceDelegate, RemoteS
         UserDefaults.standard.set(true, forKey: "tv_paired_\(host)")
         HapticManager.playSuccess()
         pairingService.close()
-        // Ahora conectamos al canal de control
+        // Ahora conectamos al canal de control en puerto 6466
+        currentStatus = .connecting(name)
         remoteService.connect(host: host)
     }
 
@@ -123,18 +128,15 @@ class GoogleTVClient: GoogleTVDiscoveryDelegate, PairingServiceDelegate, RemoteS
     func remoteServiceDidConnect() {
         guard let name = currentTVName else { return }
         currentStatus = .connected(name)
-        print("[Client] Canal de control activo — \(name)")
+        print("[Client] Canal de control activo y sincronizado — \(name)")
     }
 
     func remoteServiceDidDisconnect(error: String?) {
-        if let err = error {
-            currentStatus = .error(err)
+        // En caso de desconexión transitoria, volvemos a ready para permitir reconexión suave
+        if let name = currentTVName {
+            currentStatus = .ready(name)
         } else {
-            if let name = currentTVName {
-                currentStatus = .ready(name)
-            } else {
-                currentStatus = .disconnected
-            }
+            currentStatus = .disconnected
         }
     }
 
@@ -146,19 +148,25 @@ class GoogleTVClient: GoogleTVDiscoveryDelegate, PairingServiceDelegate, RemoteS
             remoteService.sendKey(key)
 
         case .ready(let name):
-            // Primer toque → conectar
             if let host = currentHost {
                 connect(to: DiscoveredTV(name: name, host: host, port: GoogleTVPorts.pairing))
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { [weak self] in
+                    self?.remoteService.sendKey(key)
+                }
             }
 
         default:
-            print("[Client] No conectado. Estado: \(currentStatus). Tecla ignorada: \(key)")
+            print("[Client] Estado: \(currentStatus). Tecla: \(key)")
         }
     }
 
     func disconnect() {
         remoteService.disconnect()
         pairingService.close()
-        currentStatus = .disconnected
+        if let name = currentTVName {
+            currentStatus = .ready(name)
+        } else {
+            currentStatus = .disconnected
+        }
     }
 }

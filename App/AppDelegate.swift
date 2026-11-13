@@ -19,4 +19,14 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         
         return true
     }
+
+    func applicationDidEnterBackground(_ application: UIApplication) {
+        print("[App] Pasando a segundo plano — cerrando conexiones de red activas")
+        GoogleTVClient.shared.disconnect()
+    }
+
+    func applicationWillEnterForeground(_ application: UIApplication) {
+        print("[App] Regresando a primer plano — reactivando control")
+        GoogleTVClient.shared.startAutoDiscovery()
+    }
 }
