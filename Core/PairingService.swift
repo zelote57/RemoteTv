@@ -90,8 +90,9 @@ class PairingService: NSObject, StreamDelegate {
             return
         }
 
-        let inStream  = r.takeRetainedValue() as InputStream
-        let outStream = w.takeRetainedValue() as OutputStream
+        // Toll-free bridge: CFReadStream ↔ InputStream via NSInputStream
+        let inStream  = r.takeRetainedValue() as AnyObject as! InputStream
+        let outStream = w.takeRetainedValue() as AnyObject as! OutputStream
 
         applyTLS(toInput: inStream, output: outStream)
 
@@ -422,7 +423,7 @@ class PairingService: NSObject, StreamDelegate {
         var publicKey: SecKey?
         var trust: SecTrust?
         let policy = SecPolicyCreateBasicX509()
-        SecTrustCreateWithCertificates([cert] as CFArray, policy, &trust)
+        SecTrustCreateWithCertificates([cert] as AnyObject, policy, &trust)
         if let t = trust {
             if #available(iOS 14.0, *) {
                 publicKey = SecTrustCopyKey(t)

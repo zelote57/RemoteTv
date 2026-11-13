@@ -11,21 +11,20 @@ struct CertificateStore {
             print("[CertStore] Error decodificando Base64 de PKCS12")
             return nil
         }
-        
-        let options: [String: Any] = [
-            kSecImportExportPassphrase as String: password
-        ]
-        
+
+        // NSDictionary evita el cast [String:Any] as CFDictionary que falla en Swift 5
+        let options = NSDictionary(object: password, forKey: kSecImportExportPassphrase as NSString)
+
         var rawItems: CFArray?
-        let status = SecPKCS12Import(data as CFData, options as CFDictionary, &rawItems)
-        
+        let status = SecPKCS12Import(data as CFData, options, &rawItems)
+
         guard status == errSecSuccess,
               let items = rawItems as? [[String: Any]],
               let firstItem = items.first else {
             print("[CertStore] Error en SecPKCS12Import: \(status)")
             return nil
         }
-        
+
         return firstItem[kSecImportItemIdentity as String] as? SecIdentity
     }
 }

@@ -79,8 +79,9 @@ class RemoteService: NSObject, StreamDelegate {
             return
         }
 
-        let inStream  = r.takeRetainedValue() as InputStream
-        let outStream = w.takeRetainedValue() as OutputStream
+        // Toll-free bridge: CFReadStream ↔ InputStream via NSInputStream
+        let inStream  = r.takeRetainedValue() as AnyObject as! InputStream
+        let outStream = w.takeRetainedValue() as AnyObject as! OutputStream
 
         applyTLSSettings(toInput: inStream, output: outStream)
 
