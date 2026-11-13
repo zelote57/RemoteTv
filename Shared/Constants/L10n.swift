@@ -9,99 +9,99 @@ enum L10n {
     // MARK: - Connection & Pairing States
     enum Status {
         static var disconnected: String {
-            return "status.disconnected".localized()
+            return "status.disconnected".localized
         }
         
         static var searching: String {
-            return "status.searching".localized()
+            return "status.searching".localized
         }
         
         static var connecting: String {
-            return "status.connecting".localized()
+            return "status.connecting".localized
         }
         
         static var connected: String {
-            return "status.connected".localized()
+            return "status.connected".localized
         }
         
         static var pairingRequired: String {
-            return "status.pairing_required".localized()
+            return "status.pairing_required".localized
         }
         
         static func error(_ description: String) -> String {
-            return "status.error_prefix".localized(with: description)
+            return "status.error_prefix".localizedFormat(description)
         }
     }
     
     // MARK: - Navigation & Device Header
     enum Header {
         static var selectTv: String {
-            return "header.select_tv".localized()
+            return "header.select_tv".localized
         }
         
         static var searchingTv: String {
-            return "header.searching_tv".localized()
+            return "header.searching_tv".localized
         }
         
         static var tvError: String {
-            return "header.tv_error".localized()
+            return "header.tv_error".localized
         }
     }
     
     // MARK: - Polo v2 Pairing Dialog
     enum Pairing {
         static var dialogTitle: String {
-            return "pairing.dialog_title".localized()
+            return "pairing.dialog_title".localized
         }
         
         static func dialogMessage(deviceName: String) -> String {
-            return "pairing.dialog_message".localized(with: deviceName)
+            return "pairing.dialog_message".localizedFormat(deviceName)
         }
         
         static var pinPlaceholder: String {
-            return "pairing.pin_placeholder".localized()
+            return "pairing.pin_placeholder".localized
         }
         
         static var pairButton: String {
-            return "pairing.pair_button".localized()
+            return "pairing.pair_button".localized
         }
         
         static var cancelButton: String {
-            return "pairing.cancel_button".localized()
+            return "pairing.cancel_button".localized
         }
     }
     
     // MARK: - Device Discovery & Picker Sheet
     enum Picker {
         static var title: String {
-            return "picker.title".localized()
+            return "picker.title".localized
         }
         
         static var searching: String {
-            return "picker.searching".localized()
+            return "picker.searching".localized
         }
         
         static func deviceFormat(name: String) -> String {
-            return "picker.device_format".localized(with: name)
+            return "picker.device_format".localizedFormat(name)
         }
     }
     
     // MARK: - Common Actions & Alerts
     enum Common {
         static var ok: String {
-            return "common.ok".localized()
+            return "common.ok".localized
         }
         
         static var cancel: String {
-            return "common.cancel".localized()
+            return "common.cancel".localized
         }
         
         static var errorTitle: String {
-            return "common.error_title".localized()
+            return "common.error_title".localized
         }
         
         static var retry: String {
-            return "common.retry".localized()
+            return "common.retry".localized
         }
     }
 }

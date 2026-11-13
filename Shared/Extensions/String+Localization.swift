@@ -6,6 +6,11 @@ import Foundation
 extension String {
     
     /// Returns the localized string for this key using standard main bundle.
+    var localized: String {
+        return NSLocalizedString(self, comment: "")
+    }
+    
+    /// Returns the localized string for this key with custom table or bundle parameters.
     /// - Parameters:
     ///   - tableName: The name of the strings table to search, defaults to "Localizable".
     ///   - bundle: The bundle containing the table, defaults to Bundle.main.
@@ -18,8 +23,8 @@ extension String {
     /// Returns the formatted localized string by applying arguments to the localized key format.
     /// - Parameter arguments: Format arguments matching the format specifiers in the string.
     /// - Returns: Formatted localized string.
-    func localized(with arguments: CVarArg...) -> String {
-        let format = localized()
+    func localizedFormat(_ arguments: CVarArg...) -> String {
+        let format = NSLocalizedString(self, comment: "")
         return String(format: format, locale: Locale.current, arguments: arguments)
     }
 }
