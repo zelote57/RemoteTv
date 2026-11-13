@@ -10,9 +10,8 @@ struct HapticManager {
             generator.impactOccurred()
         }
         
-        // Soporte específico para el motor de vibración del iPhone 6 / 6 Plus (Chip Apple A8)
-        // 1519: Peak (Tap suave táctil de iOS)
-        AudioServicesPlaySystemSound(1519)
+        // Soporte real de vibración para iPhone 6 / 6 Plus (motor ERM / chip Apple A8)
+        AudioServicesPlaySystemSound(SystemSoundID(kSystemSoundID_Vibrate))
     }
 
     static func playSuccess() {
@@ -21,6 +20,6 @@ struct HapticManager {
             generator.prepare()
             generator.notificationOccurred(.success)
         }
-        AudioServicesPlaySystemSound(1520) // Pop
+        AudioServicesPlaySystemSound(SystemSoundID(kSystemSoundID_Vibrate))
     }
 }

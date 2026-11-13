@@ -100,7 +100,8 @@ class RemoteService: NSObject, StreamDelegate {
 
     private func applyTLSSettings(toInput inStream: InputStream, output outStream: OutputStream) {
         guard let identity = CertificateStore.getClientIdentity() else {
-            print("[Remote] Sin certificado de cliente")
+            print("[Remote] Error: Sin certificado de cliente")
+            delegate?.remoteServiceDidDisconnect(error: "No se pudo cargar el certificado de cliente")
             return
         }
 

@@ -294,6 +294,12 @@ class RemoteViewController: UIViewController, DPadViewDelegate, GoogleTVClientDe
     @objc private func didTapStatusPill() {
         HapticManager.playTactileClick()
         
+        // Si ya hay un TV detectado y listo, conectar de inmediato al tocar la píldora
+        if case .ready(let name) = client.currentStatus, let host = client.currentHost {
+            client.connect(to: DiscoveredTV(name: name, host: host, port: 6466))
+            return
+        }
+        
         let sheet = DevicePickerSheet()
         sheet.modalPresentationStyle = .overCurrentContext
         sheet.modalTransitionStyle = .crossDissolve

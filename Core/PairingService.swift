@@ -110,7 +110,8 @@ class PairingService: NSObject, StreamDelegate {
 
     private func applyTLS(toInput inStream: InputStream, output outStream: OutputStream) {
         guard let identity = CertificateStore.getClientIdentity() else {
-            print("[Pairing] Sin certificado de cliente")
+            print("[Pairing] Error: Sin certificado de cliente")
+            notifyFail("No se pudo cargar el certificado de cliente")
             return
         }
 
@@ -143,7 +144,10 @@ class PairingService: NSObject, StreamDelegate {
             }
 
         case .hasBytesAvailable:
-            if aStream === inputStream { readAvailableBytes() }
+            if aStream === inputStream {
+                if serverCertData == nil { extractServerCert() }
+                readAvailableBytes()
+            }
 
         case .errorOccurred:
             let msg = aStream.streamError?.localizedDescription ?? "Error desconocido"
