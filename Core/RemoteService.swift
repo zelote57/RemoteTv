@@ -26,6 +26,7 @@ class RemoteService: NSObject, StreamDelegate {
 
     private var readBuffer = Data()
     private var isConnected = false
+    private var sequenceNumber: Int = 1
 
     // MARK: - API Pública
 
@@ -40,14 +41,13 @@ class RemoteService: NSObject, StreamDelegate {
             print("[Remote] No conectado — ignorando tecla \(keyCode)")
             return
         }
-        // Enviar KEY_DOWN
         let downMsg = buildKeyEventMessage(keyCode: keyCode, isDown: true)
         send(data: downMsg)
 
-        // Enviar KEY_UP con un pequeño delay
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [weak self] in
-            let upMsg = self?.buildKeyEventMessage(keyCode: keyCode, isDown: false)
-            if let msg = upMsg { self?.send(data: msg) }
+            guard let self = self else { return }
+            let upMsg = self.buildKeyEventMessage(keyCode: keyCode, isDown: false)
+            self.send(data: upMsg)
         }
         print("[Remote] KeyEvent \(keyCode) (\(keyCode.rawValue)) enviado")
     }
@@ -75,44 +75,51 @@ class RemoteService: NSObject, StreamDelegate {
         )
 
         guard let r = readStream, let w = writeStream else {
-            delegate?.remoteServiceDidDisconnect(error: "No se pudo crear el socket de control")
+            delegate?.remoteServiceDidDisconnect(error: "No se pudo crear el socket")
             return
         }
 
-        inputStream  = r.takeRetainedValue()
-        outputStream = w.takeRetainedValue()
+        let inStream  = r.takeRetainedValue() as InputStream
+        let outStream = w.takeRetainedValue() as OutputStream
 
-        guard let identity = CertificateStore.getClientIdentity() else {
-            delegate?.remoteServiceDidDisconnect(error: "Certificado de cliente no disponible")
-            return
-        }
+        applyTLSSettings(toInput: inStream, output: outStream)
 
-        let sslSettings: [NSString: Any] = [
-            kCFStreamSSLIsServer:              false,
-            kCFStreamSSLValidatesCertificateChain: false,
-            kCFStreamSSLCertificates:          [identity] as CFArray,
-        ]
+        inStream.delegate  = self
+        outStream.delegate = self
+        inStream.schedule(in: .main, forMode: .common)
+        outStream.schedule(in: .main, forMode: .common)
+        inStream.open()
+        outStream.open()
 
-        inputStream?.setProperty(StreamSocketSecurityLevel.negotiatedSSL.rawValue,
-                                 forKey: Stream.PropertyKey.socketSecurityLevelKey)
-        outputStream?.setProperty(StreamSocketSecurityLevel.negotiatedSSL.rawValue,
-                                  forKey: Stream.PropertyKey.socketSecurityLevelKey)
-
-        inputStream?.setProperty(sslSettings as CFDictionary,
-                                 forKey: Stream.PropertyKey(rawValue: kCFStreamPropertySSLSettings as String))
-        outputStream?.setProperty(sslSettings as CFDictionary,
-                                  forKey: Stream.PropertyKey(rawValue: kCFStreamPropertySSLSettings as String))
-
-        inputStream?.delegate  = self
-        outputStream?.delegate = self
-
-        inputStream?.schedule(in: .main, forMode: .common)
-        outputStream?.schedule(in: .main, forMode: .common)
-
-        inputStream?.open()
-        outputStream?.open()
+        inputStream  = inStream
+        outputStream = outStream
 
         print("[Remote] Streams abiertos hacia \(host):\(port)")
+    }
+
+    private func applyTLSSettings(toInput inStream: InputStream, output outStream: OutputStream) {
+        guard let identity = CertificateStore.getClientIdentity() else {
+            print("[Remote] Sin certificado de cliente")
+            return
+        }
+
+        // Nivel TLS
+        inStream.setProperty(StreamSocketSecurityLevel.negotiatedSSL.rawValue,
+                             forKey: Stream.PropertyKey.socketSecurityLevelKey)
+        outStream.setProperty(StreamSocketSecurityLevel.negotiatedSSL.rawValue,
+                              forKey: Stream.PropertyKey.socketSecurityLevelKey)
+
+        // SSL settings dict — usamos Any para evitar problemas de tipo CFString/NSString
+        var certArray = [identity] as AnyObject
+        let settings: NSDictionary = [
+            kCFStreamSSLIsServer: false,
+            kCFStreamSSLValidatesCertificateChain: false,
+            kCFStreamSSLCertificates: certArray,
+        ]
+
+        let key = Stream.PropertyKey(rawValue: kCFStreamPropertySSLSettings as String)
+        inStream.setProperty(settings, forKey: key)
+        outStream.setProperty(settings, forKey: key)
     }
 
     // MARK: - StreamDelegate
@@ -123,29 +130,29 @@ class RemoteService: NSObject, StreamDelegate {
             if aStream === outputStream {
                 isConnected = true
                 print("[Remote] Conectado al puerto de control \(port)")
-                delegate?.remoteServiceDidConnect()
+                DispatchQueue.main.async { self.delegate?.remoteServiceDidConnect() }
             }
 
         case .hasBytesAvailable:
             readAvailableBytes()
 
         case .errorOccurred:
-            let err = aStream.streamError?.localizedDescription ?? "Error"
+            let err = aStream.streamError?.localizedDescription ?? "Error desconocido"
             print("[Remote] Error: \(err)")
             isConnected = false
-            delegate?.remoteServiceDidDisconnect(error: err)
+            DispatchQueue.main.async { self.delegate?.remoteServiceDidDisconnect(error: err) }
 
         case .endEncountered:
             print("[Remote] Conexión cerrada por el TV")
             isConnected = false
-            delegate?.remoteServiceDidDisconnect(error: nil)
+            DispatchQueue.main.async { self.delegate?.remoteServiceDidDisconnect(error: nil) }
 
         default:
             break
         }
     }
 
-    // MARK: - Lectura (keep-alive / mensajes del servidor)
+    // MARK: - Lectura
 
     private func readAvailableBytes() {
         let bufSize = 4096
@@ -156,31 +163,18 @@ class RemoteService: NSObject, StreamDelegate {
                 readBuffer.append(contentsOf: buf[0..<n])
             } else { break }
         }
-        // No procesamos mensajes entrantes del canal de control por ahora
         readBuffer.removeAll()
     }
 
-    // MARK: - Protobuf KeyEvent (remotemessage.proto)
-
-    // RemoteMessage (outer):
-    //   field 1 (sequence_number, varint) = auto-increment
-    //   field 12 (remote_key_inject, embedded message)
-    //
-    // RemoteKeyInject:
-    //   field 1 (key_code, varint)
-    //   field 2 (direction, varint)  — KEY_DOWN = 1, KEY_UP = 2
-
-    private var sequenceNumber: Int = 1
+    // MARK: - Protobuf KeyEvent
 
     private func buildKeyEventMessage(keyCode: AndroidKeyCode, isDown: Bool) -> Data {
         let direction = isDown ? 1 : 2  // KEY_DOWN=1, KEY_UP=2
 
-        // Inner RemoteKeyInject
         var inner = Data()
         inner.append(protoVarint(field: 1, value: keyCode.rawValue))
         inner.append(protoVarint(field: 2, value: direction))
 
-        // Outer RemoteMessage
         var outer = Data()
         outer.append(protoVarint(field: 1, value: sequenceNumber))
         outer.append(protoBytes(field: 12, value: inner))
@@ -193,25 +187,22 @@ class RemoteService: NSObject, StreamDelegate {
 
     private func send(data: Data) {
         guard let stream = outputStream, stream.hasSpaceAvailable else { return }
-        data.withUnsafeBytes { (ptr: UnsafeRawBufferPointer) in
-            if let baseAddr = ptr.baseAddress {
-                stream.write(baseAddr.assumingMemoryBound(to: UInt8.self), maxLength: data.count)
-            }
-        }
+        let bytes = [UInt8](data)
+        stream.write(bytes, maxLength: bytes.count)
     }
 
     // MARK: - Protobuf Helpers
 
     private func protoVarint(field: Int, value: Int) -> Data {
         var d = Data()
-        d.append(encodeVarint(UInt64((field << 3) | 0)))
+        d.append(encodeVarint(UInt64(bitPattern: Int64(field << 3 | 0))))
         d.append(encodeVarint(UInt64(bitPattern: Int64(value))))
         return d
     }
 
     private func protoBytes(field: Int, value: Data) -> Data {
         var d = Data()
-        d.append(encodeVarint(UInt64((field << 3) | 2)))
+        d.append(encodeVarint(UInt64(bitPattern: Int64(field << 3 | 2))))
         d.append(encodeVarint(UInt64(value.count)))
         d.append(value)
         return d
