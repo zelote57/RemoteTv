@@ -1,0 +1,36 @@
+/* 
+  Localizable.strings (English)
+  RemoteTv
+  English localization catalog for RemoteTv
+*/
+
+// MARK: - Connection States
+"status.disconnected" = "Disconnected";
+"status.searching" = "Searching on network…";
+"status.connecting" = "Connecting…";
+"status.connected" = "Connected";
+"status.pairing_required" = "Enter PIN on screen";
+"status.error_prefix" = "Error: %@";
+
+// MARK: - Device Header
+"header.select_tv" = "Select TV";
+"header.searching_tv" = "Searching for TV…";
+"header.tv_error" = "TV Error";
+
+// MARK: - Pairing Dialog
+"pairing.dialog_title" = "On-Screen Code";
+"pairing.dialog_message" = "Enter the PIN code displayed on your %@:";
+"pairing.pin_placeholder" = "Code (e.g. AB12CD)";
+"pairing.pair_button" = "Pair";
+"pairing.cancel_button" = "Cancel";
+
+// MARK: - Device Picker Sheet
+"picker.title" = "Discovered TVs";
+"picker.searching" = "Searching for devices on network...";
+"picker.device_format" = "📺  %@";
+
+// MARK: - Common Actions & Alerts
+"common.ok" = "OK";
+"common.cancel" = "Cancel";
+"common.error_title" = "Connection Error";
+"common.retry" = "Retry";

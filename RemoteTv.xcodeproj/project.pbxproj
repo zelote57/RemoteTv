@@ -8,7 +8,6 @@
 
 /* Begin PBXBuildFile section */
 		A00100012900000100000001 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = B00100012900000100000001 /* AppDelegate.swift */; };
-		A00100022900000100000001 /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = B00100022900000100000001 /* Theme.swift */; };
 		A00100032900000100000001 /* RemoteButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = B00100032900000100000001 /* RemoteButton.swift */; };
 		A00100042900000100000001 /* DPadView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B00100042900000100000001 /* DPadView.swift */; };
 		A00100052900000100000001 /* GoogleTVConstants.swift in Sources */ = {isa = PBXBuildFile; fileRef = B00100052900000100000001 /* GoogleTVConstants.swift */; };
@@ -16,7 +15,6 @@
 		A00100072900000100000001 /* RemoteViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B00100072900000100000001 /* RemoteViewController.swift */; };
 		A00100082900000100000001 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = B00100092900000100000001 /* LaunchScreen.storyboard */; };
 		A00100092900000100000001 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B00100102900000100000001 /* Assets.xcassets */; };
-		A00100102900000100000001 /* HapticManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = B00100112900000100000001 /* HapticManager.swift */; };
 		A00100112900000100000001 /* GoogleTVDiscovery.swift in Sources */ = {isa = PBXBuildFile; fileRef = B00100122900000100000001 /* GoogleTVDiscovery.swift */; };
 		A00100122900000100000001 /* DevicePickerSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = B00100132900000100000001 /* DevicePickerSheet.swift */; };
 		A00100132900000100000001 /* CertificateStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = B00100142900000100000001 /* CertificateStore.swift */; };
@@ -25,12 +23,18 @@
 		A00100162900000100000001 /* PowerButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = B00100172900000100000001 /* PowerButton.swift */; };
 		A00100172900000100000001 /* VolumeCapsuleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B00100182900000100000001 /* VolumeCapsuleView.swift */; };
 		A00100182900000100000001 /* AssistantButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = B00100192900000100000001 /* AssistantButton.swift */; };
+		A00100202900000100000001 /* AppConstants.swift in Sources */ = {isa = PBXBuildFile; fileRef = B00100202900000100000001 /* AppConstants.swift */; };
+		A00100212900000100000001 /* L10n.swift in Sources */ = {isa = PBXBuildFile; fileRef = B00100212900000100000001 /* L10n.swift */; };
+		A00100222900000100000001 /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = B00100222900000100000001 /* Theme.swift */; };
+		A00100232900000100000001 /* HapticManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = B00100232900000100000001 /* HapticManager.swift */; };
+		A00100242900000100000001 /* String+Localization.swift in Sources */ = {isa = PBXBuildFile; fileRef = B00100242900000100000001 /* String+Localization.swift */; };
+		A00100252900000100000001 /* UIView+Layout.swift in Sources */ = {isa = PBXBuildFile; fileRef = B00100252900000100000001 /* UIView+Layout.swift */; };
+		A00100262900000100000001 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = B00100262900000100000001 /* Localizable.strings */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		C00100012900000100000001 /* RemoteTv.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = RemoteTv.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		B00100012900000100000001 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
-		B00100022900000100000001 /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
 		B00100032900000100000001 /* RemoteButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteButton.swift; sourceTree = "<group>"; };
 		B00100042900000100000001 /* DPadView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DPadView.swift; sourceTree = "<group>"; };
 		B00100052900000100000001 /* GoogleTVConstants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GoogleTVConstants.swift; sourceTree = "<group>"; };
@@ -39,7 +43,6 @@
 		B00100082900000100000001 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		B00100092900000100000001 /* LaunchScreen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = LaunchScreen.storyboard; sourceTree = "<group>"; };
 		B00100102900000100000001 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
-		B00100112900000100000001 /* HapticManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HapticManager.swift; sourceTree = "<group>"; };
 		B00100122900000100000001 /* GoogleTVDiscovery.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GoogleTVDiscovery.swift; sourceTree = "<group>"; };
 		B00100132900000100000001 /* DevicePickerSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DevicePickerSheet.swift; sourceTree = "<group>"; };
 		B00100142900000100000001 /* CertificateStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CertificateStore.swift; sourceTree = "<group>"; };
@@ -48,6 +51,14 @@
 		B00100172900000100000001 /* PowerButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PowerButton.swift; sourceTree = "<group>"; };
 		B00100182900000100000001 /* VolumeCapsuleView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VolumeCapsuleView.swift; sourceTree = "<group>"; };
 		B00100192900000100000001 /* AssistantButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssistantButton.swift; sourceTree = "<group>"; };
+		B00100202900000100000001 /* AppConstants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppConstants.swift; sourceTree = "<group>"; };
+		B00100212900000100000001 /* L10n.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = L10n.swift; sourceTree = "<group>"; };
+		B00100222900000100000001 /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
+		B00100232900000100000001 /* HapticManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HapticManager.swift; sourceTree = "<group>"; };
+		B00100242900000100000001 /* String+Localization.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "String+Localization.swift"; sourceTree = "<group>"; };
+		B00100252900000100000001 /* UIView+Layout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIView+Layout.swift"; sourceTree = "<group>"; };
+		B00100272900000100000001 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
+		B00100282900000100000001 /* es */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = es; path = es.lproj/Localizable.strings; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -67,6 +78,8 @@
 				E00100022900000100000001 /* App */,
 				E00100032900000100000001 /* UI */,
 				E00100042900000100000001 /* Core */,
+				E00100122900000100000001 /* Resources */,
+				E00100082900000100000001 /* Shared */,
 				E00100052900000100000001 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -87,7 +100,6 @@
 			children = (
 				B00100072900000100000001 /* RemoteViewController.swift */,
 				E00100062900000100000001 /* Components */,
-				E00100072900000100000001 /* Style */,
 			);
 			path = UI;
 			sourceTree = "<group>";
@@ -105,15 +117,6 @@
 			path = Components;
 			sourceTree = "<group>";
 		};
-		E00100072900000100000001 /* Style */ = {
-			isa = PBXGroup;
-			children = (
-				B00100022900000100000001 /* Theme.swift */,
-				B00100112900000100000001 /* HapticManager.swift */,
-			);
-			path = Style;
-			sourceTree = "<group>";
-		};
 		E00100042900000100000001 /* Core */ = {
 			isa = PBXGroup;
 			children = (
@@ -125,6 +128,59 @@
 				B00100162900000100000001 /* RemoteService.swift */,
 			);
 			path = Core;
+			sourceTree = "<group>";
+		};
+		E00100122900000100000001 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				E00100132900000100000001 /* Localization */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+		E00100132900000100000001 /* Localization */ = {
+			isa = PBXGroup;
+			children = (
+				B00100262900000100000001 /* Localizable.strings */,
+			);
+			path = Localization;
+			sourceTree = "<group>";
+		};
+		E00100082900000100000001 /* Shared */ = {
+			isa = PBXGroup;
+			children = (
+				E00100092900000100000001 /* Constants */,
+				E00100102900000100000001 /* DesignSystem */,
+				E00100112900000100000001 /* Extensions */,
+			);
+			path = Shared;
+			sourceTree = "<group>";
+		};
+		E00100092900000100000001 /* Constants */ = {
+			isa = PBXGroup;
+			children = (
+				B00100202900000100000001 /* AppConstants.swift */,
+				B00100212900000100000001 /* L10n.swift */,
+			);
+			path = Constants;
+			sourceTree = "<group>";
+		};
+		E00100102900000100000001 /* DesignSystem */ = {
+			isa = PBXGroup;
+			children = (
+				B00100222900000100000001 /* Theme.swift */,
+				B00100232900000100000001 /* HapticManager.swift */,
+			);
+			path = DesignSystem;
+			sourceTree = "<group>";
+		};
+		E00100112900000100000001 /* Extensions */ = {
+			isa = PBXGroup;
+			children = (
+				B00100242900000100000001 /* String+Localization.swift */,
+				B00100252900000100000001 /* UIView+Layout.swift */,
+			);
+			path = Extensions;
 			sourceTree = "<group>";
 		};
 		E00100052900000100000001 /* Products */ = {
@@ -194,6 +250,7 @@
 			files = (
 				A00100082900000100000001 /* LaunchScreen.storyboard in Resources */,
 				A00100092900000100000001 /* Assets.xcassets in Resources */,
+				A00100262900000100000001 /* Localizable.strings in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -205,13 +262,11 @@
 			buildActionMask = 2147483647;
 			files = (
 				A00100012900000100000001 /* AppDelegate.swift in Sources */,
-				A00100022900000100000001 /* Theme.swift in Sources */,
 				A00100032900000100000001 /* RemoteButton.swift in Sources */,
 				A00100042900000100000001 /* DPadView.swift in Sources */,
 				A00100052900000100000001 /* GoogleTVConstants.swift in Sources */,
 				A00100062900000100000001 /* GoogleTVClient.swift in Sources */,
 				A00100072900000100000001 /* RemoteViewController.swift in Sources */,
-				A00100102900000100000001 /* HapticManager.swift in Sources */,
 				A00100112900000100000001 /* GoogleTVDiscovery.swift in Sources */,
 				A00100122900000100000001 /* DevicePickerSheet.swift in Sources */,
 				A00100132900000100000001 /* CertificateStore.swift in Sources */,
@@ -220,10 +275,28 @@
 				A00100162900000100000001 /* PowerButton.swift in Sources */,
 				A00100172900000100000001 /* VolumeCapsuleView.swift in Sources */,
 				A00100182900000100000001 /* AssistantButton.swift in Sources */,
+				A00100202900000100000001 /* AppConstants.swift in Sources */,
+				A00100212900000100000001 /* L10n.swift in Sources */,
+				A00100222900000100000001 /* Theme.swift in Sources */,
+				A00100232900000100000001 /* HapticManager.swift in Sources */,
+				A00100242900000100000001 /* String+Localization.swift in Sources */,
+				A00100252900000100000001 /* UIView+Layout.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXVariantGroup section */
+		B00100262900000100000001 /* Localizable.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				B00100272900000100000001 /* en */,
+				B00100282900000100000001 /* es */,
+			);
+			name = Localizable.strings;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
 		H00100012900000100000001 /* Debug */ = {
@@ -338,7 +411,6 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
-
 	};
 	rootObject = 000100012900000100000001 /* Project object */;
 }
