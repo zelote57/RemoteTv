@@ -1,5 +1,10 @@
 import Foundation
 
+struct GoogleTVPorts {
+    static let pairing: UInt16 = 6467 // Puerto TLS para emparejamiento / PIN (Polo v2)
+    static let remote: UInt16  = 6466 // Puerto TLS para control remoto (KeyEvents)
+}
+
 enum AndroidKeyCode: Int {
     case dpadUp = 19
     case dpadDown = 20

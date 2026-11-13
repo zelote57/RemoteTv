@@ -23,7 +23,7 @@ class PairingService: NSObject, StreamDelegate {
     private var outputStream: OutputStream?
 
     private var host: String = ""
-    private var port: Int = 6466
+    private var port: Int = Int(GoogleTVPorts.pairing)
     private var readBuffer = Data()
     private var serverCertData: Data?
 
@@ -35,7 +35,7 @@ class PairingService: NSObject, StreamDelegate {
 
     // MARK: - API Pública
 
-    func startPairing(host: String, port: Int = 6466) {
+    func startPairing(host: String, port: Int = Int(GoogleTVPorts.pairing)) {
         switch state {
         case .idle, .failed: break
         default:

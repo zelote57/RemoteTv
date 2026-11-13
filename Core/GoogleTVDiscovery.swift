@@ -78,11 +78,10 @@ class GoogleTVDiscovery: NSObject, NetServiceBrowserDelegate, NetServiceDelegate
             }
         }
 
-        let tv = DiscoveredTV(name: name, host: ipAddress, port: 6466)
         if ipAddress.contains(".local") || ipAddress.isEmpty {
             ipAddress = "192.168.100.175"
         }
-        let fixedTv = DiscoveredTV(name: name, host: ipAddress, port: 6466)
+        let fixedTv = DiscoveredTV(name: name, host: ipAddress, port: GoogleTVPorts.pairing)
         addDiscoveredDevice(fixedTv)
     }
 
@@ -108,7 +107,7 @@ class GoogleTVDiscovery: NSObject, NetServiceBrowserDelegate, NetServiceDelegate
                 if let data = data,
                    let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
                    let tvName = json["name"] as? String {
-                    let tv = DiscoveredTV(name: tvName, host: ip, port: 6466)
+                    let tv = DiscoveredTV(name: tvName, host: ip, port: GoogleTVPorts.pairing)
                     self.addDiscoveredDevice(tv)
                 }
             }.resume()

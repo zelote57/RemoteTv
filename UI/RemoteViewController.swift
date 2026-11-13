@@ -296,7 +296,7 @@ class RemoteViewController: UIViewController, DPadViewDelegate, GoogleTVClientDe
         
         // Si ya hay un TV detectado y listo, conectar de inmediato al tocar la píldora
         if case .ready(let name) = client.currentStatus, let host = client.currentHost {
-            client.connect(to: DiscoveredTV(name: name, host: host, port: 6466))
+            client.connect(to: DiscoveredTV(name: name, host: host, port: GoogleTVPorts.pairing))
             return
         }
         

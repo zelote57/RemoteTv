@@ -83,11 +83,11 @@ class GoogleTVClient: GoogleTVDiscoveryDelegate, PairingServiceDelegate, RemoteS
 
         let isPaired = UserDefaults.standard.bool(forKey: "tv_paired_\(tv.host)")
         if isPaired {
-            // Ya emparejado → conectar directo al canal de control
+            // Ya emparejado → conectar directo al canal de control (puerto 6466)
             remoteService.connect(host: tv.host)
         } else {
-            // Primera vez → pairing por puerto 6466
-            pairingService.startPairing(host: tv.host, port: 6466)
+            // Primera vez → pairing por puerto 6467 (Polo v2)
+            pairingService.startPairing(host: tv.host, port: Int(GoogleTVPorts.pairing))
         }
     }
 
@@ -148,7 +148,7 @@ class GoogleTVClient: GoogleTVDiscoveryDelegate, PairingServiceDelegate, RemoteS
         case .ready(let name):
             // Primer toque → conectar
             if let host = currentHost {
-                connect(to: DiscoveredTV(name: name, host: host, port: 6466))
+                connect(to: DiscoveredTV(name: name, host: host, port: GoogleTVPorts.pairing))
             }
 
         default:

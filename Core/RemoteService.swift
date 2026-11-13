@@ -22,7 +22,7 @@ class RemoteService: NSObject, StreamDelegate {
     private var outputStream: OutputStream?
 
     private var host: String = ""
-    private let port: Int = 6467
+    private let port: Int = Int(GoogleTVPorts.remote)
 
     private var readBuffer = Data()
     private var isConnected = false
