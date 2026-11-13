@@ -14,7 +14,7 @@ class RemoteButton: UIButton {
         self.style = style
         super.init(frame: .zero)
         
-        setupAppearance()
+        applyTheme()
         if let title = title {
             setTitle(title, for: .normal)
         }
@@ -27,16 +27,16 @@ class RemoteButton: UIButton {
     required init?(coder: NSCoder) {
         self.style = .round
         super.init(coder: coder)
-        setupAppearance()
+        applyTheme()
         setupActions()
     }
 
-    private func setupAppearance() {
+    func applyTheme() {
         backgroundColor = Theme.Colors.surface
         layer.borderColor = Theme.Colors.border.cgColor
         layer.borderWidth = 1.0
         
-        titleLabel?.font = UIFont.systemFont(ofSize: 22, weight: .semibold)
+        titleLabel?.font = UIFont.systemFont(ofSize: 24, weight: .semibold)
         tintColor = Theme.Colors.textPrimary
         setTitleColor(Theme.Colors.textPrimary, for: .normal)
         

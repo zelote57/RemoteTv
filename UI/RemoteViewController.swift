@@ -1,5 +1,6 @@
 // RemoteViewController.swift — Control Remoto Google TV
-// Diseño Dark Minimalista y equilibrado en el centro de la pantalla
+// Diseño Minimalista y equilibrado en el centro de la pantalla
+// Soporte completo de Tema Claro y Oscuro (idéntico diseño en ambos)
 // Optimizado para iPhone 6 Plus (iOS 12.0) sin letterboxing
 
 import UIKit
@@ -15,15 +16,18 @@ class RemoteViewController: UIViewController, GoogleTVClientDelegate, DPadViewDe
     private let statusRow = UIStackView()
     private let statusDot = UIView()
     private let statusSubtitleLabel = UILabel()
+    
+    private let headerActions = UIStackView()
+    private let themeToggleButton = UIButton(type: .custom)
     private let powerButton = PowerButton(type: .custom)
 
     // MARK: - Contenedor Central (Equilibrado verticalmente)
     private let centerContentContainer = UIView()
     private let dpadView = DPadView()
 
-    // MARK: - Fila de Acciones Principales (Atrás, Google Assistant, Home)
+    // MARK: - Fila de Acciones Principales (Atrás, Play/Pausa, Home)
     private let backButton = RemoteButton(title: "←", style: .round)
-    private let assistantButton = AssistantButton(type: .custom)
+    private let playPauseButton = RemoteButton(title: "⏯", style: .round)
     private let homeButton = RemoteButton(title: "⌂", style: .round)
 
     private let client = GoogleTVClient.shared
@@ -31,20 +35,20 @@ class RemoteViewController: UIViewController, GoogleTVClientDelegate, DPadViewDe
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        view.backgroundColor = Theme.Colors.background
         
         client.delegate = self
         dpadView.delegate = self
         
         setupLayout()
         setupActions()
+        applyTheme()
         updateStatusUI(client.currentStatus)
         
         client.startAutoDiscovery()
     }
 
     override var preferredStatusBarStyle: UIStatusBarStyle {
-        return .lightContent
+        return Theme.isDark ? .lightContent : .default
     }
 
     // MARK: - Layout Visual
@@ -61,9 +65,7 @@ class RemoteViewController: UIViewController, GoogleTVClientDelegate, DPadViewDe
         pickerContainer.translatesAutoresizingMaskIntoConstraints = false
         headerView.addSubview(pickerContainer)
 
-        pickerChevronCircle.backgroundColor = Theme.Colors.surface
         pickerChevronCircle.layer.cornerRadius = 22.0
-        pickerChevronCircle.layer.borderColor = Theme.Colors.border.cgColor
         pickerChevronCircle.layer.borderWidth = 1.0
         pickerChevronCircle.isUserInteractionEnabled = false
         pickerChevronCircle.translatesAutoresizingMaskIntoConstraints = false
@@ -71,13 +73,11 @@ class RemoteViewController: UIViewController, GoogleTVClientDelegate, DPadViewDe
 
         pickerChevronLabel.text = "▼"
         pickerChevronLabel.font = UIFont.systemFont(ofSize: 11, weight: .bold)
-        pickerChevronLabel.textColor = Theme.Colors.textPrimary
         pickerChevronLabel.textAlignment = .center
         pickerChevronLabel.translatesAutoresizingMaskIntoConstraints = false
         pickerChevronCircle.addSubview(pickerChevronLabel)
 
         tvNameLabel.font = UIFont.systemFont(ofSize: 17, weight: .bold)
-        tvNameLabel.textColor = Theme.Colors.textPrimary
         tvNameLabel.isUserInteractionEnabled = false
         tvNameLabel.translatesAutoresizingMaskIntoConstraints = false
         pickerContainer.addSubview(tvNameLabel)
@@ -86,7 +86,6 @@ class RemoteViewController: UIViewController, GoogleTVClientDelegate, DPadViewDe
         statusDot.translatesAutoresizingMaskIntoConstraints = false
         
         statusSubtitleLabel.font = UIFont.systemFont(ofSize: 13, weight: .medium)
-        statusSubtitleLabel.textColor = Theme.Colors.textSecondary
         statusSubtitleLabel.translatesAutoresizingMaskIntoConstraints = false
 
         statusRow.axis = .horizontal
@@ -98,8 +97,21 @@ class RemoteViewController: UIViewController, GoogleTVClientDelegate, DPadViewDe
         statusRow.addArrangedSubview(statusSubtitleLabel)
         pickerContainer.addSubview(statusRow)
 
+        // Botón de Alternancia de Tema (☀️ Modo Claro / 🌙 Modo Oscuro)
+        themeToggleButton.layer.cornerRadius = 20.0
+        themeToggleButton.layer.borderWidth = 1.0
+        themeToggleButton.titleLabel?.font = UIFont.systemFont(ofSize: 18)
+        themeToggleButton.translatesAutoresizingMaskIntoConstraints = false
+        
         powerButton.translatesAutoresizingMaskIntoConstraints = false
-        headerView.addSubview(powerButton)
+
+        headerActions.axis = .horizontal
+        headerActions.spacing = 12
+        headerActions.alignment = .center
+        headerActions.translatesAutoresizingMaskIntoConstraints = false
+        headerActions.addArrangedSubview(themeToggleButton)
+        headerActions.addArrangedSubview(powerButton)
+        headerView.addSubview(headerActions)
 
         // ══════════════════════════════════════════════════
         // 2. Contenedor Central (Ocupa el centro armónico de la pantalla)
@@ -110,8 +122,8 @@ class RemoteViewController: UIViewController, GoogleTVClientDelegate, DPadViewDe
         dpadView.translatesAutoresizingMaskIntoConstraints = false
         centerContentContainer.addSubview(dpadView)
 
-        // Fila de acciones principales (Atrás, Asistente Google, Inicio)
-        let actionsRow = UIStackView(arrangedSubviews: [backButton, assistantButton, homeButton])
+        // Fila de acciones principales 100% funcionales (Atrás, Play/Pausa, Inicio)
+        let actionsRow = UIStackView(arrangedSubviews: [backButton, playPauseButton, homeButton])
         actionsRow.axis = .horizontal
         actionsRow.spacing = 32
         actionsRow.alignment = .center
@@ -119,21 +131,21 @@ class RemoteViewController: UIViewController, GoogleTVClientDelegate, DPadViewDe
         actionsRow.translatesAutoresizingMaskIntoConstraints = false
         centerContentContainer.addSubview(actionsRow)
 
-        // Dimensiones en pt para iPhone 6 Plus (414 x 736 pt)
+        // Dimensiones calculadas para iPhone 6 Plus (414 x 736 pt)
         let dpadSize: CGFloat = 268
         let actionBtnSize: CGFloat = 72
 
         NSLayoutConstraint.activate([
             // Header fijado arriba
             headerView.topAnchor.constraint(equalTo: guide.topAnchor, constant: 16),
-            headerView.leadingAnchor.constraint(equalTo: guide.leadingAnchor, constant: 22),
-            headerView.trailingAnchor.constraint(equalTo: guide.trailingAnchor, constant: -22),
+            headerView.leadingAnchor.constraint(equalTo: guide.leadingAnchor, constant: 20),
+            headerView.trailingAnchor.constraint(equalTo: guide.trailingAnchor, constant: -20),
             headerView.heightAnchor.constraint(equalToConstant: 48),
 
             pickerContainer.leadingAnchor.constraint(equalTo: headerView.leadingAnchor),
             pickerContainer.topAnchor.constraint(equalTo: headerView.topAnchor),
             pickerContainer.bottomAnchor.constraint(equalTo: headerView.bottomAnchor),
-            pickerContainer.trailingAnchor.constraint(lessThanOrEqualTo: powerButton.leadingAnchor, constant: -12),
+            pickerContainer.trailingAnchor.constraint(lessThanOrEqualTo: headerActions.leadingAnchor, constant: -10),
 
             pickerChevronCircle.leadingAnchor.constraint(equalTo: pickerContainer.leadingAnchor),
             pickerChevronCircle.centerYAnchor.constraint(equalTo: pickerContainer.centerYAnchor),
@@ -152,12 +164,16 @@ class RemoteViewController: UIViewController, GoogleTVClientDelegate, DPadViewDe
             statusRow.leadingAnchor.constraint(equalTo: tvNameLabel.leadingAnchor),
             statusRow.topAnchor.constraint(equalTo: tvNameLabel.bottomAnchor, constant: 3),
 
-            powerButton.trailingAnchor.constraint(equalTo: headerView.trailingAnchor),
-            powerButton.centerYAnchor.constraint(equalTo: headerView.centerYAnchor),
+            headerActions.trailingAnchor.constraint(equalTo: headerView.trailingAnchor),
+            headerActions.centerYAnchor.constraint(equalTo: headerView.centerYAnchor),
+
+            themeToggleButton.widthAnchor.constraint(equalToConstant: 40),
+            themeToggleButton.heightAnchor.constraint(equalToConstant: 40),
+
             powerButton.widthAnchor.constraint(equalToConstant: 46),
             powerButton.heightAnchor.constraint(equalToConstant: 46),
 
-            // Contenedor centrado en la pantalla (dejando balance arriba y abajo)
+            // Contenedor centrado en la pantalla (dejando balance perfecto arriba y abajo)
             centerContentContainer.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             centerContentContainer.centerYAnchor.constraint(equalTo: view.centerYAnchor, constant: 28),
             centerContentContainer.widthAnchor.constraint(equalToConstant: dpadSize),
@@ -176,22 +192,58 @@ class RemoteViewController: UIViewController, GoogleTVClientDelegate, DPadViewDe
             backButton.widthAnchor.constraint(equalToConstant: actionBtnSize),
             backButton.heightAnchor.constraint(equalToConstant: actionBtnSize),
 
-            assistantButton.widthAnchor.constraint(equalToConstant: actionBtnSize),
-            assistantButton.heightAnchor.constraint(equalToConstant: actionBtnSize),
+            playPauseButton.widthAnchor.constraint(equalToConstant: actionBtnSize),
+            playPauseButton.heightAnchor.constraint(equalToConstant: actionBtnSize),
 
             homeButton.widthAnchor.constraint(equalToConstant: actionBtnSize),
             homeButton.heightAnchor.constraint(equalToConstant: actionBtnSize)
         ])
     }
 
+    // MARK: - Soporte de Tema Dinámico (Claro / Oscuro)
+
+    private func applyTheme() {
+        view.backgroundColor = Theme.Colors.background
+
+        pickerChevronCircle.backgroundColor = Theme.Colors.surface
+        pickerChevronCircle.layer.borderColor = Theme.Colors.border.cgColor
+        pickerChevronLabel.textColor = Theme.Colors.textPrimary
+        tvNameLabel.textColor = Theme.Colors.textPrimary
+
+        // Botón de alternancia de tema
+        themeToggleButton.backgroundColor = Theme.Colors.surface
+        themeToggleButton.layer.borderColor = Theme.Colors.border.cgColor
+        themeToggleButton.setTitle(Theme.isDark ? "☀️" : "🌙", for: .normal)
+        Theme.Shadows.applyButtonShadow(to: themeToggleButton.layer)
+
+        // Botones y D-Pad
+        dpadView.applyTheme()
+        backButton.applyTheme()
+        playPauseButton.applyTheme()
+        homeButton.applyTheme()
+
+        setNeedsStatusBarAppearanceUpdate()
+    }
+
+    @objc private func didTapThemeToggle() {
+        HapticManager.playTactileClick()
+        Theme.toggleTheme()
+        
+        UIView.animate(withDuration: 0.25) {
+            self.applyTheme()
+            self.updateStatusUI(self.client.currentStatus)
+        }
+    }
+
     // MARK: - Acciones y Conexiones
 
     private func setupActions() {
         pickerContainer.addTarget(self, action: #selector(didTapDevicePicker), for: .touchUpInside)
+        themeToggleButton.addTarget(self, action: #selector(didTapThemeToggle), for: .touchUpInside)
         powerButton.addTarget(self, action: #selector(didTapPower), for: .touchUpInside)
 
         backButton.addTarget(self, action: #selector(didTapBack), for: .touchUpInside)
-        assistantButton.addTarget(self, action: #selector(didTapAssistant), for: .touchUpInside)
+        playPauseButton.addTarget(self, action: #selector(didTapPlayPause), for: .touchUpInside)
         homeButton.addTarget(self, action: #selector(didTapHome), for: .touchUpInside)
     }
 
@@ -205,8 +257,8 @@ class RemoteViewController: UIViewController, GoogleTVClientDelegate, DPadViewDe
     // MARK: - Acciones de Botones
     @objc private func didTapPower() { client.sendKey(.power) }
     @objc private func didTapBack() { client.sendKey(.back) }
+    @objc private func didTapPlayPause() { client.sendKey(.mediaPlayPause) }
     @objc private func didTapHome() { client.sendKey(.home) }
-    @objc private func didTapAssistant() { client.sendKey(.assistant) }
 
     // MARK: - Selector de Dispositivos (Bottom Sheet)
     @objc private func didTapDevicePicker() {

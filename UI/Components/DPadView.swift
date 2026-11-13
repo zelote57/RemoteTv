@@ -29,23 +29,14 @@ class DPadView: UIView {
     }
 
     private func setupView() {
-        backgroundColor = Theme.Colors.dpadOuter
-        layer.borderColor = Theme.Colors.border.cgColor
-        layer.borderWidth = 1.0
-        Theme.Shadows.applySoftCard(to: layer)
-
         configureDirectionButton(upButton, title: "▲", action: #selector(didTapUp))
         configureDirectionButton(downButton, title: "▼", action: #selector(didTapDown))
         configureDirectionButton(leftButton, title: "◀", action: #selector(didTapLeft))
         configureDirectionButton(rightButton, title: "▶", action: #selector(didTapRight))
 
         centerButton.setTitle("OK", for: .normal)
-        centerButton.setTitleColor(Theme.Colors.textPrimary, for: .normal)
-        centerButton.titleLabel?.font = UIFont.systemFont(ofSize: 17, weight: .bold)
-        centerButton.backgroundColor = Theme.Colors.dpadCenter
-        centerButton.layer.borderColor = Theme.Colors.border.cgColor
+        centerButton.titleLabel?.font = UIFont.systemFont(ofSize: 18, weight: .bold)
         centerButton.layer.borderWidth = 1.0
-        Theme.Shadows.applyButtonShadow(to: centerButton.layer)
         centerButton.addTarget(self, action: #selector(didTapCenter), for: .touchUpInside)
         addPressAnimation(to: centerButton)
 
@@ -54,11 +45,28 @@ class DPadView: UIView {
         addSubview(leftButton)
         addSubview(rightButton)
         addSubview(centerButton)
+
+        applyTheme()
+    }
+
+    func applyTheme() {
+        backgroundColor = Theme.Colors.dpadOuter
+        layer.borderColor = Theme.Colors.border.cgColor
+        layer.borderWidth = 1.0
+        Theme.Shadows.applySoftCard(to: layer)
+
+        centerButton.setTitleColor(Theme.Colors.textPrimary, for: .normal)
+        centerButton.backgroundColor = Theme.Colors.dpadCenter
+        centerButton.layer.borderColor = Theme.Colors.border.cgColor
+        Theme.Shadows.applyButtonShadow(to: centerButton.layer)
+
+        for btn in [upButton, downButton, leftButton, rightButton] {
+            btn.setTitleColor(Theme.Colors.textSecondary, for: .normal)
+        }
     }
 
     private func configureDirectionButton(_ button: UIButton, title: String, action: Selector) {
         button.setTitle(title, for: .normal)
-        button.setTitleColor(Theme.Colors.textSecondary, for: .normal)
         button.titleLabel?.font = UIFont.systemFont(ofSize: 15, weight: .semibold)
         button.addTarget(self, action: action, for: .touchUpInside)
         addPressAnimation(to: button)

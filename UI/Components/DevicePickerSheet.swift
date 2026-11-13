@@ -51,6 +51,7 @@ class DevicePickerSheet: UIViewController, UITableViewDataSource, UITableViewDel
         containerView.addSubview(titleLabel)
 
         spinner.translatesAutoresizingMaskIntoConstraints = false
+        spinner.style = Theme.isDark ? .white : .gray
         spinner.startAnimating()
         containerView.addSubview(spinner)
 
