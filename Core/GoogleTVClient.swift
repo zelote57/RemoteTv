@@ -1,5 +1,5 @@
 // GoogleTVClient.swift — Orquestador principal
-// Coordina Discovery → Pairing (puerto 6466) → Remote (puerto 6467)
+// Coordina Discovery → Pairing (puerto 6467) → Remote (puerto 6466)
 
 import Foundation
 

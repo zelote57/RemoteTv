@@ -1,4 +1,4 @@
-// RemoteService.swift — Google TV Remote Protocol (puerto 6467)
+// RemoteService.swift — Google TV Remote Protocol (puerto 6466)
 // Envía KeyEvents via mTLS usando remotemessage.proto (proto3)
 // Compatible con iOS 12 — CFStream + TLS
 
@@ -22,9 +22,10 @@ class RemoteService: NSObject, StreamDelegate {
     private var outputStream: OutputStream?
 
     private var host: String = ""
-    private let port: Int = Int(GoogleTVPorts.remote)
+    private let port: Int = Int(GoogleTVPorts.remote) // 6466
 
     private var readBuffer = Data()
+    private var pendingWriteData = Data()
     private var isConnected = false
     private var sequenceNumber: Int = 1
 
@@ -33,6 +34,7 @@ class RemoteService: NSObject, StreamDelegate {
     func connect(host: String) {
         guard !isConnected else { return }
         self.host = host
+        pendingWriteData = Data()
         openTLSStreams()
     }
 
@@ -58,6 +60,7 @@ class RemoteService: NSObject, StreamDelegate {
         outputStream?.close()
         inputStream = nil
         outputStream = nil
+        pendingWriteData = Data()
     }
 
     // MARK: - CFStream con mTLS
@@ -128,6 +131,11 @@ class RemoteService: NSObject, StreamDelegate {
         case .hasBytesAvailable:
             readAvailableBytes()
 
+        case .hasSpaceAvailable:
+            if aStream === outputStream {
+                flushPendingData()
+            }
+
         case .errorOccurred:
             let err = aStream.streamError?.localizedDescription ?? "Error desconocido"
             print("[Remote] Error: \(err)")
@@ -155,6 +163,7 @@ class RemoteService: NSObject, StreamDelegate {
                 readBuffer.append(contentsOf: buf[0..<n])
             } else { break }
         }
+        // Procesamos la respuesta del TV (acks, etc.) — por ahora solo la consumimos
         readBuffer.removeAll()
     }
 
@@ -175,12 +184,24 @@ class RemoteService: NSObject, StreamDelegate {
         return delimited(outer)
     }
 
-    // MARK: - Envío
+    // MARK: - Envío con buffer
 
     private func send(data: Data) {
-        guard let stream = outputStream, stream.hasSpaceAvailable else { return }
-        let bytes = [UInt8](data)
-        stream.write(bytes, maxLength: bytes.count)
+        pendingWriteData.append(data)
+        flushPendingData()
+    }
+
+    private func flushPendingData() {
+        guard let stream = outputStream, !pendingWriteData.isEmpty else { return }
+        while !pendingWriteData.isEmpty && stream.hasSpaceAvailable {
+            let bytes = [UInt8](pendingWriteData)
+            let written = stream.write(bytes, maxLength: bytes.count)
+            if written > 0 {
+                pendingWriteData.removeSubrange(0..<written)
+            } else {
+                break
+            }
+        }
     }
 
     // MARK: - Protobuf Helpers
