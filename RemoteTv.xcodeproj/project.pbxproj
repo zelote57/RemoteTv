@@ -24,6 +24,7 @@
 		A00100152900000100000001 /* RemoteService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B00100162900000100000001 /* RemoteService.swift */; };
 		A00100162900000100000001 /* PowerButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = B00100172900000100000001 /* PowerButton.swift */; };
 		A00100172900000100000001 /* VolumeCapsuleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B00100182900000100000001 /* VolumeCapsuleView.swift */; };
+		A00100182900000100000001 /* AssistantButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = B00100192900000100000001 /* AssistantButton.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -46,6 +47,7 @@
 		B00100162900000100000001 /* RemoteService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteService.swift; sourceTree = "<group>"; };
 		B00100172900000100000001 /* PowerButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PowerButton.swift; sourceTree = "<group>"; };
 		B00100182900000100000001 /* VolumeCapsuleView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VolumeCapsuleView.swift; sourceTree = "<group>"; };
+		B00100192900000100000001 /* AssistantButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssistantButton.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -98,6 +100,7 @@
 				B00100132900000100000001 /* DevicePickerSheet.swift */,
 				B00100172900000100000001 /* PowerButton.swift */,
 				B00100182900000100000001 /* VolumeCapsuleView.swift */,
+				B00100192900000100000001 /* AssistantButton.swift */,
 			);
 			path = Components;
 			sourceTree = "<group>";
@@ -216,6 +219,7 @@
 				A00100152900000100000001 /* RemoteService.swift in Sources */,
 				A00100162900000100000001 /* PowerButton.swift in Sources */,
 				A00100172900000100000001 /* VolumeCapsuleView.swift in Sources */,
+				A00100182900000100000001 /* AssistantButton.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

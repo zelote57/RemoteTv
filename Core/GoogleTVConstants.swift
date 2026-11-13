@@ -15,6 +15,7 @@ enum AndroidKeyCode: Int {
     case back = 4
     case home = 3
     case menu = 82
+    case search = 84
     
     case volumeUp = 24
     case volumeDown = 25
@@ -27,7 +28,8 @@ enum AndroidKeyCode: Int {
     
     case channelUp = 166
     case channelDown = 167
-    case tvInput = 178 // KEYCODE_TV_INPUT para cambiar entradas HDMI
+    case tvInput = 178
+    case assistant = 219 // KEYCODE_ASSIST para invocar Google Assistant en la pantalla del TV
 }
 
 enum ConnectionStatus: Equatable {
