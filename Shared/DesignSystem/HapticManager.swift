@@ -33,6 +33,16 @@ struct HapticManager {
         // Single standard physical pulse for confirmation
         AudioServicesPlaySystemSound(SystemSoundID(kSystemSoundID_Vibrate))
     }
+
+    /// Triggers a subtle tactile selection feedback pattern for pickers and list item selection.
+    static func playSelection() {
+        if #available(iOS 10.0, *) {
+            let generator = UISelectionFeedbackGenerator()
+            generator.prepare()
+            generator.selectionChanged()
+        }
+        AudioServicesPlaySystemSound(1104)
+    }
     
     /// Triggers an alert feedback pattern when an operation fails.
     static func playError() {
