@@ -1,7 +1,6 @@
 // RemoteViewController.swift — Control Remoto Google TV
-// Diseño Minimalista y equilibrado en el centro de la pantalla
-// Soporte completo de Tema Claro y Oscuro (idéntico diseño en ambos)
-// Optimizado para iPhone 6 Plus (iOS 12.0) sin letterboxing
+// Diseño de alta fidelidad basado en Stitch (Modo Claro y Modo Oscuro)
+// 100% UIKit programático, compatible con Swift 5.0 e iOS 12.0 (iPhone 6 Plus)
 
 import UIKit
 
@@ -10,28 +9,30 @@ class RemoteViewController: UIViewController, GoogleTVClientDelegate, DPadViewDe
     // MARK: - Barra Superior (Header)
     private let headerView = UIView()
     private let pickerContainer = UIControl()
-    private let pickerChevronCircle = UIView()
-    private let pickerChevronLabel = UILabel()
+    private let chevronButton = DevicePickerChevronButton()
     private let tvNameLabel = UILabel()
     private let statusRow = UIStackView()
     private let statusDot = UIView()
     private let statusSubtitleLabel = UILabel()
     
     private let headerActions = UIStackView()
-    private let themeToggleButton = UIButton(type: .custom)
-    private let powerButton = PowerButton(type: .custom)
+    private let themeToggleButton = ThemeToggleButton()
+    private let powerButton = PowerButton()
 
-    // MARK: - Contenedor Central (Equilibrado verticalmente)
-    private let centerContentContainer = UIView()
+    // MARK: - Navegación D-Pad Central
     private let dpadView = DPadView()
 
-    // MARK: - Fila de Acciones Principales (Atrás, Play/Pausa, Home)
-    private let backButton = RemoteButton(title: "←", style: .round)
-    private let playPauseButton = RemoteButton(title: "⏯", style: .round)
-    private let homeButton = RemoteButton(title: "⌂", style: .round)
+    // MARK: - Fila de Acciones Inferiores (Atrás, Play/Pausa, Inicio)
+    private let bottomControlsRow = UIStackView()
+    private let backButton = RemoteButton(iconType: .back)
+    private let playPauseButton = RemoteButton(iconType: .playPause)
+    private let homeButton = RemoteButton(iconType: .home)
 
+    // MARK: - Dependencias de Red
     private let client = GoogleTVClient.shared
     private let discovery = GoogleTVDiscovery.shared
+
+    // MARK: - Ciclo de Vida
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -41,17 +42,38 @@ class RemoteViewController: UIViewController, GoogleTVClientDelegate, DPadViewDe
         
         setupLayout()
         setupActions()
+        setupThemeObserver()
         applyTheme()
         updateStatusUI(client.currentStatus)
         
         client.startAutoDiscovery()
     }
 
+    deinit {
+        NotificationCenter.default.removeObserver(self)
+    }
+
     override var preferredStatusBarStyle: UIStatusBarStyle {
         return Theme.isDark ? .lightContent : .default
     }
 
-    // MARK: - Layout Visual
+    // MARK: - Notificación de Tema
+
+    private func setupThemeObserver() {
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleThemeChanged),
+            name: Theme.themeDidChangeNotification,
+            object: nil
+        )
+    }
+
+    @objc private func handleThemeChanged() {
+        applyTheme()
+        updateStatusUI(client.currentStatus)
+    }
+
+    // MARK: - Layout Visual con Auto Layout
 
     private func setupLayout() {
         let guide = view.safeAreaLayoutGuide
@@ -65,24 +87,16 @@ class RemoteViewController: UIViewController, GoogleTVClientDelegate, DPadViewDe
         pickerContainer.translatesAutoresizingMaskIntoConstraints = false
         headerView.addSubview(pickerContainer)
 
-        pickerChevronCircle.layer.cornerRadius = 22.0
-        pickerChevronCircle.layer.borderWidth = 1.0
-        pickerChevronCircle.isUserInteractionEnabled = false
-        pickerChevronCircle.translatesAutoresizingMaskIntoConstraints = false
-        pickerContainer.addSubview(pickerChevronCircle)
+        chevronButton.isUserInteractionEnabled = false
+        chevronButton.translatesAutoresizingMaskIntoConstraints = false
+        pickerContainer.addSubview(chevronButton)
 
-        pickerChevronLabel.text = "▼"
-        pickerChevronLabel.font = UIFont.systemFont(ofSize: 11, weight: .bold)
-        pickerChevronLabel.textAlignment = .center
-        pickerChevronLabel.translatesAutoresizingMaskIntoConstraints = false
-        pickerChevronCircle.addSubview(pickerChevronLabel)
-
-        tvNameLabel.font = UIFont.systemFont(ofSize: 17, weight: .bold)
+        tvNameLabel.font = UIFont.systemFont(ofSize: 19, weight: .bold)
         tvNameLabel.isUserInteractionEnabled = false
         tvNameLabel.translatesAutoresizingMaskIntoConstraints = false
         pickerContainer.addSubview(tvNameLabel)
 
-        statusDot.layer.cornerRadius = 3.5
+        statusDot.layer.cornerRadius = AppConstants.UI.statusDotDiameter / 2.0
         statusDot.translatesAutoresizingMaskIntoConstraints = false
         
         statusSubtitleLabel.font = UIFont.systemFont(ofSize: 13, weight: .medium)
@@ -97,69 +111,70 @@ class RemoteViewController: UIViewController, GoogleTVClientDelegate, DPadViewDe
         statusRow.addArrangedSubview(statusSubtitleLabel)
         pickerContainer.addSubview(statusRow)
 
-        // Botón de Alternancia de Tema (☀️ Modo Claro / 🌙 Modo Oscuro)
-        themeToggleButton.layer.cornerRadius = 20.0
-        themeToggleButton.layer.borderWidth = 1.0
-        themeToggleButton.titleLabel?.font = UIFont.systemFont(ofSize: 18)
-        themeToggleButton.translatesAutoresizingMaskIntoConstraints = false
-        
-        powerButton.translatesAutoresizingMaskIntoConstraints = false
-
         headerActions.axis = .horizontal
         headerActions.spacing = 12
         headerActions.alignment = .center
         headerActions.translatesAutoresizingMaskIntoConstraints = false
+        
+        themeToggleButton.translatesAutoresizingMaskIntoConstraints = false
+        powerButton.translatesAutoresizingMaskIntoConstraints = false
+        
         headerActions.addArrangedSubview(themeToggleButton)
         headerActions.addArrangedSubview(powerButton)
         headerView.addSubview(headerActions)
 
         // ══════════════════════════════════════════════════
-        // 2. Contenedor Central (Ocupa el centro armónico de la pantalla)
+        // 2. D-Pad Central
         // ══════════════════════════════════════════════════
-        centerContentContainer.translatesAutoresizingMaskIntoConstraints = false
-        view.addSubview(centerContentContainer)
-
         dpadView.translatesAutoresizingMaskIntoConstraints = false
-        centerContentContainer.addSubview(dpadView)
+        view.addSubview(dpadView)
 
-        // Fila de acciones principales 100% funcionales (Atrás, Play/Pausa, Inicio)
-        let actionsRow = UIStackView(arrangedSubviews: [backButton, playPauseButton, homeButton])
-        actionsRow.axis = .horizontal
-        actionsRow.spacing = 32
-        actionsRow.alignment = .center
-        actionsRow.distribution = .equalSpacing
-        actionsRow.translatesAutoresizingMaskIntoConstraints = false
-        centerContentContainer.addSubview(actionsRow)
+        // ══════════════════════════════════════════════════
+        // 3. Fila de Acciones Inferiores (Atrás, Play/Pausa, Inicio)
+        // ══════════════════════════════════════════════════
+        bottomControlsRow.axis = .horizontal
+        bottomControlsRow.spacing = AppConstants.UI.actionsRowSpacing
+        bottomControlsRow.alignment = .center
+        bottomControlsRow.distribution = .equalSpacing
+        bottomControlsRow.translatesAutoresizingMaskIntoConstraints = false
+        
+        backButton.translatesAutoresizingMaskIntoConstraints = false
+        playPauseButton.translatesAutoresizingMaskIntoConstraints = false
+        homeButton.translatesAutoresizingMaskIntoConstraints = false
+        
+        bottomControlsRow.addArrangedSubview(backButton)
+        bottomControlsRow.addArrangedSubview(playPauseButton)
+        bottomControlsRow.addArrangedSubview(homeButton)
+        view.addSubview(bottomControlsRow)
 
-        // Dimensiones calculadas para iPhone 6 Plus (414 x 736 pt)
-        let dpadSize: CGFloat = 268
-        let actionBtnSize: CGFloat = 72
+        // Dimensiones estandarizadas
+        let dpadSize = AppConstants.UI.dpadDiameter
+        let actionBtnSize = AppConstants.UI.actionButtonSize
+        let headerBtnSize = AppConstants.UI.headerButtonSize
 
         NSLayoutConstraint.activate([
-            // Header fijado arriba
-            headerView.topAnchor.constraint(equalTo: guide.topAnchor, constant: 16),
-            headerView.leadingAnchor.constraint(equalTo: guide.leadingAnchor, constant: 20),
-            headerView.trailingAnchor.constraint(equalTo: guide.trailingAnchor, constant: -20),
-            headerView.heightAnchor.constraint(equalToConstant: 48),
+            // Header
+            headerView.topAnchor.constraint(equalTo: guide.topAnchor, constant: AppConstants.UI.headerTopOffset),
+            headerView.leadingAnchor.constraint(equalTo: guide.leadingAnchor, constant: AppConstants.UI.headerHorizontalInset),
+            headerView.trailingAnchor.constraint(equalTo: guide.trailingAnchor, constant: -AppConstants.UI.headerHorizontalInset),
+            headerView.heightAnchor.constraint(equalToConstant: AppConstants.UI.headerHeight),
 
             pickerContainer.leadingAnchor.constraint(equalTo: headerView.leadingAnchor),
             pickerContainer.topAnchor.constraint(equalTo: headerView.topAnchor),
             pickerContainer.bottomAnchor.constraint(equalTo: headerView.bottomAnchor),
-            pickerContainer.trailingAnchor.constraint(lessThanOrEqualTo: headerActions.leadingAnchor, constant: -10),
+            pickerContainer.trailingAnchor.constraint(lessThanOrEqualTo: headerActions.leadingAnchor, constant: -8),
 
-            pickerChevronCircle.leadingAnchor.constraint(equalTo: pickerContainer.leadingAnchor),
-            pickerChevronCircle.centerYAnchor.constraint(equalTo: pickerContainer.centerYAnchor),
-            pickerChevronCircle.widthAnchor.constraint(equalToConstant: 44),
-            pickerChevronCircle.heightAnchor.constraint(equalToConstant: 44),
+            chevronButton.leadingAnchor.constraint(equalTo: pickerContainer.leadingAnchor),
+            chevronButton.centerYAnchor.constraint(equalTo: pickerContainer.centerYAnchor),
+            chevronButton.widthAnchor.constraint(equalToConstant: headerBtnSize),
+            chevronButton.heightAnchor.constraint(equalToConstant: headerBtnSize),
 
-            pickerChevronLabel.centerXAnchor.constraint(equalTo: pickerChevronCircle.centerXAnchor),
-            pickerChevronLabel.centerYAnchor.constraint(equalTo: pickerChevronCircle.centerYAnchor),
+            tvNameLabel.leadingAnchor.constraint(equalTo: chevronButton.trailingAnchor, constant: 12),
+            tvNameLabel.topAnchor.constraint(equalTo: chevronButton.topAnchor, constant: 3),
+            tvNameLabel.trailingAnchor.constraint(lessThanOrEqualTo: pickerContainer.trailingAnchor),
 
-            tvNameLabel.leadingAnchor.constraint(equalTo: pickerChevronCircle.trailingAnchor, constant: 12),
-            tvNameLabel.topAnchor.constraint(equalTo: pickerChevronCircle.topAnchor, constant: 2),
-
-            statusDot.widthAnchor.constraint(equalToConstant: 7),
-            statusDot.heightAnchor.constraint(equalToConstant: 7),
+            statusDot.widthAnchor.constraint(equalToConstant: AppConstants.UI.statusDotDiameter),
+            statusDot.heightAnchor.constraint(equalToConstant: AppConstants.UI.statusDotDiameter),
 
             statusRow.leadingAnchor.constraint(equalTo: tvNameLabel.leadingAnchor),
             statusRow.topAnchor.constraint(equalTo: tvNameLabel.bottomAnchor, constant: 3),
@@ -167,27 +182,23 @@ class RemoteViewController: UIViewController, GoogleTVClientDelegate, DPadViewDe
             headerActions.trailingAnchor.constraint(equalTo: headerView.trailingAnchor),
             headerActions.centerYAnchor.constraint(equalTo: headerView.centerYAnchor),
 
-            themeToggleButton.widthAnchor.constraint(equalToConstant: 40),
-            themeToggleButton.heightAnchor.constraint(equalToConstant: 40),
+            themeToggleButton.widthAnchor.constraint(equalToConstant: headerBtnSize),
+            themeToggleButton.heightAnchor.constraint(equalToConstant: headerBtnSize),
 
-            powerButton.widthAnchor.constraint(equalToConstant: 46),
-            powerButton.heightAnchor.constraint(equalToConstant: 46),
+            powerButton.widthAnchor.constraint(equalToConstant: headerBtnSize),
+            powerButton.heightAnchor.constraint(equalToConstant: headerBtnSize),
 
-            // Contenedor centrado en la pantalla (dejando balance perfecto arriba y abajo)
-            centerContentContainer.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            centerContentContainer.centerYAnchor.constraint(equalTo: view.centerYAnchor, constant: 28),
-            centerContentContainer.widthAnchor.constraint(equalToConstant: dpadSize),
-
-            // D-Pad
-            dpadView.topAnchor.constraint(equalTo: centerContentContainer.topAnchor),
-            dpadView.centerXAnchor.constraint(equalTo: centerContentContainer.centerXAnchor),
+            // D-Pad centrado en el medio de la pantalla
+            dpadView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            dpadView.centerYAnchor.constraint(equalTo: view.centerYAnchor, constant: AppConstants.UI.centerVerticalOffset),
             dpadView.widthAnchor.constraint(equalToConstant: dpadSize),
             dpadView.heightAnchor.constraint(equalToConstant: dpadSize),
 
-            // Fila de acciones
-            actionsRow.topAnchor.constraint(equalTo: dpadView.bottomAnchor, constant: 46),
-            actionsRow.centerXAnchor.constraint(equalTo: centerContentContainer.centerXAnchor),
-            actionsRow.bottomAnchor.constraint(equalTo: centerContentContainer.bottomAnchor),
+            // Fila de acciones anclada armónicamente en la parte inferior
+            bottomControlsRow.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            bottomControlsRow.leadingAnchor.constraint(greaterThanOrEqualTo: guide.leadingAnchor, constant: 28),
+            bottomControlsRow.trailingAnchor.constraint(lessThanOrEqualTo: guide.trailingAnchor, constant: -28),
+            bottomControlsRow.bottomAnchor.constraint(equalTo: guide.bottomAnchor, constant: -28),
 
             backButton.widthAnchor.constraint(equalToConstant: actionBtnSize),
             backButton.heightAnchor.constraint(equalToConstant: actionBtnSize),
@@ -200,24 +211,18 @@ class RemoteViewController: UIViewController, GoogleTVClientDelegate, DPadViewDe
         ])
     }
 
-    // MARK: - Soporte de Tema Dinámico (Claro / Oscuro)
+    // MARK: - Aplicación de Tema (Modo Claro / Modo Oscuro)
 
     private func applyTheme() {
         view.backgroundColor = Theme.Colors.background
 
-        pickerChevronCircle.backgroundColor = Theme.Colors.surface
-        pickerChevronCircle.layer.borderColor = Theme.Colors.border.cgColor
-        pickerChevronLabel.textColor = Theme.Colors.textPrimary
         tvNameLabel.textColor = Theme.Colors.textPrimary
-
-        // Botón de alternancia de tema
-        themeToggleButton.backgroundColor = Theme.Colors.surface
-        themeToggleButton.layer.borderColor = Theme.Colors.border.cgColor
-        themeToggleButton.setTitle(Theme.isDark ? "☀️" : "🌙", for: .normal)
-        Theme.Shadows.applyButtonShadow(to: themeToggleButton.layer)
-
-        // Botones y D-Pad
+        
+        chevronButton.applyTheme()
+        themeToggleButton.applyTheme()
+        powerButton.applyTheme()
         dpadView.applyTheme()
+        
         backButton.applyTheme()
         playPauseButton.applyTheme()
         homeButton.applyTheme()
@@ -225,17 +230,7 @@ class RemoteViewController: UIViewController, GoogleTVClientDelegate, DPadViewDe
         setNeedsStatusBarAppearanceUpdate()
     }
 
-    @objc private func didTapThemeToggle() {
-        HapticManager.playTactileClick()
-        Theme.toggleTheme()
-        
-        UIView.animate(withDuration: 0.25) {
-            self.applyTheme()
-            self.updateStatusUI(self.client.currentStatus)
-        }
-    }
-
-    // MARK: - Acciones y Conexiones
+    // MARK: - Acciones de Usuario
 
     private func setupActions() {
         pickerContainer.addTarget(self, action: #selector(didTapDevicePicker), for: .touchUpInside)
@@ -247,7 +242,19 @@ class RemoteViewController: UIViewController, GoogleTVClientDelegate, DPadViewDe
         homeButton.addTarget(self, action: #selector(didTapHome), for: .touchUpInside)
     }
 
-    // MARK: - DPad Delegate
+    @objc private func didTapThemeToggle() {
+        Theme.toggleTheme()
+        
+        UIView.animate(withDuration: AppConstants.UI.defaultAnimationDuration) { [weak self] in
+            self?.applyTheme()
+            if let currentStatus = self?.client.currentStatus {
+                self?.updateStatusUI(currentStatus)
+            }
+        }
+    }
+
+    // MARK: - D-Pad Delegate
+
     func dpadDidTapUp(_ dpad: DPadView) { client.sendKey(.dpadUp) }
     func dpadDidTapDown(_ dpad: DPadView) { client.sendKey(.dpadDown) }
     func dpadDidTapLeft(_ dpad: DPadView) { client.sendKey(.dpadLeft) }
@@ -255,12 +262,14 @@ class RemoteViewController: UIViewController, GoogleTVClientDelegate, DPadViewDe
     func dpadDidTapCenter(_ dpad: DPadView) { client.sendKey(.dpadCenter) }
 
     // MARK: - Acciones de Botones
+
     @objc private func didTapPower() { client.sendKey(.power) }
     @objc private func didTapBack() { client.sendKey(.back) }
     @objc private func didTapPlayPause() { client.sendKey(.mediaPlayPause) }
     @objc private func didTapHome() { client.sendKey(.home) }
 
-    // MARK: - Selector de Dispositivos (Bottom Sheet)
+    // MARK: - Selector de Dispositivos (Device Picker)
+
     @objc private func didTapDevicePicker() {
         HapticManager.playTactileClick()
 
@@ -278,11 +287,13 @@ class RemoteViewController: UIViewController, GoogleTVClientDelegate, DPadViewDe
     }
 
     // MARK: - DevicePickerDelegate
+
     func devicePickerDidSelectDevice(_ picker: DevicePickerSheet, device: DiscoveredTV) {
         client.connect(to: device)
     }
 
-    // MARK: - Client Delegate & Estado
+    // MARK: - Client Delegate & Estado Visual
+
     func clientDidChangeStatus(_ client: GoogleTVClient, status: ConnectionStatus) {
         updateStatusUI(status)
 
@@ -294,67 +305,237 @@ class RemoteViewController: UIViewController, GoogleTVClientDelegate, DPadViewDe
     private func updateStatusUI(_ status: ConnectionStatus) {
         switch status {
         case .disconnected:
-            tvNameLabel.text = client.currentTVName ?? "Seleccionar TV"
+            tvNameLabel.text = client.currentTVName ?? L10n.Header.selectTv
             statusDot.backgroundColor = Theme.Colors.disconnected
-            statusSubtitleLabel.text = "Desconectado"
+            statusSubtitleLabel.text = L10n.Status.disconnected
             statusSubtitleLabel.textColor = Theme.Colors.textSecondary
+            statusDot.layer.shadowOpacity = 0
 
         case .searching:
-            tvNameLabel.text = client.currentTVName ?? "Buscando TV…"
+            tvNameLabel.text = client.currentTVName ?? L10n.Header.searchingTv
             statusDot.backgroundColor = Theme.Colors.accent
-            statusSubtitleLabel.text = "Buscando en red…"
+            statusSubtitleLabel.text = L10n.Status.searching
             statusSubtitleLabel.textColor = Theme.Colors.accent
+            statusDot.layer.shadowOpacity = 0
 
         case .ready(let name):
             tvNameLabel.text = name
             statusDot.backgroundColor = Theme.Colors.connected
-            statusSubtitleLabel.text = "Conectado"
+            statusSubtitleLabel.text = L10n.Status.connected
             statusSubtitleLabel.textColor = Theme.Colors.connected
+            applyConnectedDotGlow()
 
         case .connecting(let name):
             tvNameLabel.text = name
             statusDot.backgroundColor = Theme.Colors.accent
-            statusSubtitleLabel.text = "Conectando…"
+            statusSubtitleLabel.text = L10n.Status.connecting
             statusSubtitleLabel.textColor = Theme.Colors.accent
+            statusDot.layer.shadowOpacity = 0
 
         case .pairingRequired(let name):
             tvNameLabel.text = name
             statusDot.backgroundColor = Theme.Colors.accent
-            statusSubtitleLabel.text = "Ingresar PIN en pantalla"
+            statusSubtitleLabel.text = L10n.Status.pairingRequired
             statusSubtitleLabel.textColor = Theme.Colors.accent
+            statusDot.layer.shadowOpacity = 0
 
         case .connected(let name):
             tvNameLabel.text = name
             statusDot.backgroundColor = Theme.Colors.connected
-            statusSubtitleLabel.text = "Conectado"
+            statusSubtitleLabel.text = L10n.Status.connected
             statusSubtitleLabel.textColor = Theme.Colors.connected
+            applyConnectedDotGlow()
 
         case .error(let msg):
-            tvNameLabel.text = client.currentTVName ?? "Error"
-            statusDot.backgroundColor = Theme.Colors.disconnected
-            statusSubtitleLabel.text = msg
-            statusSubtitleLabel.textColor = Theme.Colors.textSecondary
+            tvNameLabel.text = client.currentTVName ?? L10n.Header.tvError
+            statusDot.backgroundColor = Theme.Colors.error
+            statusSubtitleLabel.text = L10n.Status.error(msg)
+            statusSubtitleLabel.textColor = Theme.Colors.error
+            statusDot.layer.shadowOpacity = 0
+        }
+    }
+
+    private func applyConnectedDotGlow() {
+        if Theme.isDark {
+            statusDot.layer.shadowColor = Theme.Colors.connected.cgColor
+            statusDot.layer.shadowOffset = .zero
+            statusDot.layer.shadowRadius = 3.0
+            statusDot.layer.shadowOpacity = 0.80
+        } else {
+            statusDot.layer.shadowOpacity = 0
         }
     }
 
     private func showPairingDialog(for name: String) {
         let alert = UIAlertController(
-            title: "Código en pantalla",
-            message: "Introduce el código PIN que aparece en tu \(name):",
+            title: L10n.Pairing.dialogTitle,
+            message: L10n.Pairing.dialogMessage(deviceName: name),
             preferredStyle: .alert
         )
         alert.addTextField { tf in
-            tf.placeholder = "Código (ej. AB12CD)"
+            tf.placeholder = L10n.Pairing.pinPlaceholder
             tf.autocapitalizationType = .allCharacters
             tf.textAlignment = .center
             tf.font = UIFont.systemFont(ofSize: 22, weight: .bold)
         }
-        alert.addAction(UIAlertAction(title: "Emparejar", style: .default, handler: { [weak self] _ in
+        alert.addAction(UIAlertAction(title: L10n.Pairing.pairButton, style: .default, handler: { [weak self] _ in
             if let pin = alert.textFields?.first?.text?.trimmingCharacters(in: .whitespacesAndNewlines), !pin.isEmpty {
                 self?.client.submitPin(pin)
             }
         }))
-        alert.addAction(UIAlertAction(title: "Cancelar", style: .cancel))
+        alert.addAction(UIAlertAction(title: L10n.Pairing.cancelButton, style: .cancel))
         present(alert, animated: true)
+    }
+}
+
+// MARK: - Componente Vectorial: Botón de Sol / Brillo (ThemeToggle)
+
+private class ThemeToggleButton: UIButton {
+
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        setup()
+    }
+
+    required init?(coder: NSCoder) {
+        super.init(coder: coder)
+        setup()
+    }
+
+    private func setup() {
+        clipsToBounds = false
+        contentMode = .redraw
+        
+        applyTheme()
+        
+        addTarget(self, action: #selector(handleTouchDown), for: [.touchDown, .touchDragEnter])
+        addTarget(self, action: #selector(handleTouchUp), for: [.touchUpInside, .touchUpOutside, .touchCancel])
+    }
+
+    func applyTheme() {
+        backgroundColor = Theme.Colors.surface
+        layer.borderColor = Theme.Colors.border.cgColor
+        layer.borderWidth = 1.0
+        Theme.Shadows.applyButtonShadow(to: layer)
+        setNeedsDisplay()
+    }
+
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        layer.cornerRadius = bounds.width / 2.0
+        Theme.Shadows.applyButtonShadow(to: layer)
+    }
+
+    @objc private func handleTouchDown() {
+        HapticManager.playTactileClick()
+        UIView.animate(withDuration: 0.10, delay: 0, options: [.curveEaseOut], animations: {
+            self.transform = CGAffineTransform(scaleX: 0.94, y: 0.94)
+            self.backgroundColor = Theme.Colors.surfacePressed
+        })
+    }
+
+    @objc private func handleTouchUp() {
+        UIView.animate(withDuration: 0.22, delay: 0, usingSpringWithDamping: 0.6, initialSpringVelocity: 0.8, options: [], animations: {
+            self.transform = .identity
+            self.backgroundColor = Theme.Colors.surface
+        })
+    }
+
+    override func draw(_ rect: CGRect) {
+        guard let ctx = UIGraphicsGetCurrentContext() else { return }
+
+        let center = CGPoint(x: rect.midX, y: rect.midY)
+        let sunColor = Theme.Colors.sunYellow
+
+        // 1. Círculo Central del Sol
+        let coreRadius: CGFloat = 4.8
+        ctx.setFillColor(sunColor.cgColor)
+        ctx.fillEllipse(in: CGRect(
+            x: center.x - coreRadius,
+            y: center.y - coreRadius,
+            width: coreRadius * 2.0,
+            height: coreRadius * 2.0
+        ))
+
+        // 2. Ocho Rayos Solares Concetricos
+        ctx.setStrokeColor(sunColor.cgColor)
+        ctx.setLineWidth(2.0)
+        ctx.setLineCap(.round)
+
+        let innerDist: CGFloat = 7.5
+        let outerDist: CGFloat = 10.5
+
+        for i in 0..<8 {
+            let angle = (CGFloat(i) * CGFloat.pi / 4.0)
+            let cosA = cos(angle)
+            let sinA = sin(angle)
+
+            let pStart = CGPoint(x: center.x + innerDist * cosA, y: center.y + innerDist * sinA)
+            let pEnd = CGPoint(x: center.x + outerDist * cosA, y: center.y + outerDist * sinA)
+
+            let ray = UIBezierPath()
+            ray.move(to: pStart)
+            ray.addLine(to: pEnd)
+            ray.lineWidth = 2.0
+            ray.lineCapStyle = .round
+            ray.stroke()
+        }
+    }
+}
+
+// MARK: - Componente Vectorial: Botón Selector de Dispositivo (Chevron)
+
+private class DevicePickerChevronButton: UIButton {
+
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        setup()
+    }
+
+    required init?(coder: NSCoder) {
+        super.init(coder: coder)
+        setup()
+    }
+
+    private func setup() {
+        clipsToBounds = false
+        contentMode = .redraw
+        
+        applyTheme()
+    }
+
+    func applyTheme() {
+        backgroundColor = Theme.Colors.surface
+        layer.borderColor = Theme.Colors.border.cgColor
+        layer.borderWidth = 1.0
+        Theme.Shadows.applyButtonShadow(to: layer)
+        setNeedsDisplay()
+    }
+
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        layer.cornerRadius = bounds.width / 2.0
+        Theme.Shadows.applyButtonShadow(to: layer)
+    }
+
+    override func draw(_ rect: CGRect) {
+        guard let ctx = UIGraphicsGetCurrentContext() else { return }
+
+        let center = CGPoint(x: rect.midX, y: rect.midY)
+        let chevronColor = Theme.Colors.textPrimary
+
+        // Flecha triangular hacia abajo exacta a Stitch SVG (d="M7 10l5 5 5-5z")
+        ctx.setFillColor(chevronColor.cgColor)
+
+        let triangle = UIBezierPath()
+        let halfWidth: CGFloat = 5.5
+        let topY: CGFloat = center.y - 2.5
+        let bottomY: CGFloat = center.y + 3.5
+
+        triangle.move(to: CGPoint(x: center.x - halfWidth, y: topY))
+        triangle.addLine(to: CGPoint(x: center.x + halfWidth, y: topY))
+        triangle.addLine(to: CGPoint(x: center.x, y: bottomY))
+        triangle.close()
+        triangle.fill()
     }
 }

@@ -1,5 +1,5 @@
 // Theme.swift — Centralized design system theme definitions for RemoteTv
-// Fully compliant with Swift 5.0 and iOS 12.0+
+// Fully compliant with Swift 5.0 and iOS 12.0+ (Faithfully matches Stitch design)
 
 import UIKit
 
@@ -43,93 +43,148 @@ struct Theme {
         /// Root view controller and canvas background color
         static var background: UIColor {
             return Theme.isDark
-                ? UIColor(red: 31/255, green: 34/255, blue: 42/255, alpha: 1.0)       // #1F222A (Dark)
-                : UIColor(red: 246/255, green: 247/255, blue: 250/255, alpha: 1.0)    // #F6F7FA (Light)
+                ? UIColor(red: 28/255, green: 32/255, blue: 42/255, alpha: 1.0)       // #1C202A (Dark)
+                : UIColor(red: 248/255, green: 250/255, blue: 252/255, alpha: 1.0)    // #F8FAFC (Light Slate 50)
         }
 
-        /// Surface background for cards, sheets, and action buttons
+        /// Surface background for cards, sheets, and circular buttons
         static var surface: UIColor {
             return Theme.isDark
-                ? UIColor(red: 40/255, green: 43/255, blue: 53/255, alpha: 1.0)       // #282B35
-                : UIColor(red: 255/255, green: 255/255, blue: 255/255, alpha: 1.0)    // #FFFFFF
+                ? UIColor(red: 37/255, green: 43/255, blue: 58/255, alpha: 1.0)       // #252B3A
+                : UIColor(red: 237/255, green: 242/255, blue: 247/255, alpha: 1.0)    // #EDF2F7
         }
 
         /// Highlighted state background color for interactive elements
         static var surfacePressed: UIColor {
             return Theme.isDark
-                ? UIColor(red: 54/255, green: 59/255, blue: 72/255, alpha: 1.0)       // #363B48
-                : UIColor(red: 236/255, green: 239/255, blue: 245/255, alpha: 1.0)    // #ECEFF5
+                ? UIColor(red: 30/255, green: 35/255, blue: 48/255, alpha: 1.0)       // #1E2330
+                : UIColor(red: 226/255, green: 232/255, blue: 240/255, alpha: 1.0)    // #E2E8F0
         }
 
         /// Outline border color for controls and cards
         static var border: UIColor {
             return Theme.isDark
-                ? UIColor(red: 50/255, green: 54/255, blue: 66/255, alpha: 0.6)
-                : UIColor(red: 226/255, green: 230/255, blue: 236/255, alpha: 1.0)
+                ? UIColor(white: 1.0, alpha: 0.05)                                    // rgba(255, 255, 255, 0.05)
+                : UIColor.white                                                       // #FFFFFF (Crisp white border in Light)
         }
 
         /// Subtle separator line color
         static var divider: UIColor {
             return Theme.isDark
-                ? UIColor(red: 56/255, green: 60/255, blue: 74/255, alpha: 0.8)
-                : UIColor(red: 235/255, green: 238/255, blue: 242/255, alpha: 1.0)
+                ? UIColor(white: 1.0, alpha: 0.10)
+                : UIColor(red: 203/255, green: 213/255, blue: 225/255, alpha: 1.0)   // #CBD5E1 (Slate 300)
         }
 
         /// D-Pad outer ring background color
         static var dpadOuter: UIColor {
             return Theme.isDark
-                ? UIColor(red: 38/255, green: 41/255, blue: 50/255, alpha: 1.0)       // #262932
-                : UIColor(red: 255/255, green: 255/255, blue: 255/255, alpha: 1.0)    // #FFFFFF
+                ? UIColor(red: 36/255, green: 43/255, blue: 58/255, alpha: 1.0)       // #242B3A
+                : UIColor(red: 233/255, green: 238/255, blue: 244/255, alpha: 1.0)    // #E9EEF4
         }
 
         /// D-Pad center OK button background color
         static var dpadCenter: UIColor {
             return Theme.isDark
-                ? UIColor(red: 31/255, green: 33/255, blue: 41/255, alpha: 1.0)       // #1F2129
-                : UIColor(red: 240/255, green: 242/255, blue: 247/255, alpha: 1.0)    // #F0F2F7
+                ? UIColor(red: 27/255, green: 32/255, blue: 44/255, alpha: 1.0)       // #1B202C
+                : UIColor(red: 243/255, green: 246/255, blue: 249/255, alpha: 1.0)    // #F3F6F9
         }
 
         /// High contrast primary label and icon tint color
         static var textPrimary: UIColor {
             return Theme.isDark
-                ? UIColor(white: 1.0, alpha: 1.0)
-                : UIColor(red: 30/255, green: 34/255, blue: 39/255, alpha: 1.0)
+                ? UIColor(white: 1.0, alpha: 0.95)
+                : UIColor(red: 15/255, green: 23/255, blue: 42/255, alpha: 1.0)       // #0F172A (Slate 900)
         }
 
-        /// Medium contrast secondary label and caption color
+        /// Medium contrast secondary label, D-Pad arrows, and icon tint
         static var textSecondary: UIColor {
             return Theme.isDark
-                ? UIColor(red: 142/255, green: 149/255, blue: 165/255, alpha: 1.0)   // #8E95A5
-                : UIColor(red: 120/255, green: 130/255, blue: 145/255, alpha: 1.0)   // #788291
+                ? UIColor(red: 156/255, green: 163/255, blue: 175/255, alpha: 1.0)   // #9CA3AF (Gray 400)
+                : UIColor(red: 100/255, green: 116/255, blue: 139/255, alpha: 1.0)   // #64748B (Slate 500)
         }
 
-        // MARK: - Accent & Status Colors
-        static let power = UIColor(red: 105/255, green: 219/255, blue: 124/255, alpha: 1.0)       // #69DB7C Green
-        static let connected = UIColor(red: 52/255, green: 199/255, blue: 89/255, alpha: 1.0)     // #34C759 Green
-        static let disconnected = UIColor(red: 107/255, green: 114/255, blue: 128/255, alpha: 1.0)// Slate gray
-        static let error = UIColor(red: 239/255, green: 68/255, blue: 68/255, alpha: 1.0)          // #EF4444 Red
-        static let accent = UIColor(red: 59/255, green: 130/255, blue: 246/255, alpha: 1.0)       // #3B82F6 Blue
+        // MARK: - Accent & Action Colors
+        
+        /// Vibrant power button background color
+        static var power: UIColor {
+            return Theme.isDark
+                ? UIColor(red: 52/255, green: 199/255, blue: 89/255, alpha: 1.0)     // #34C759 iOS green
+                : UIColor(red: 16/255, green: 185/255, blue: 129/255, alpha: 1.0)    // #10B981 Emerald
+        }
+        
+        /// Power button gradient top (Dark mode)
+        static let powerGradientTop = UIColor(red: 62/255, green: 219/255, blue: 87/255, alpha: 1.0)    // #3EDB57
+        
+        /// Power button gradient bottom (Dark mode)
+        static let powerGradientBottom = UIColor(red: 46/255, green: 179/255, blue: 70/255, alpha: 1.0)  // #2EB346
+
+        /// Sun icon amber color
+        static var sunYellow: UIColor {
+            return Theme.isDark
+                ? UIColor(red: 251/255, green: 191/255, blue: 36/255, alpha: 1.0)    // #FBBF24 (Amber 400)
+                : UIColor(red: 245/255, green: 158/255, blue: 11/255, alpha: 1.0)    // #F59E0B (Amber 500)
+        }
+
+        /// Connection status indicator dot and label
+        static var connected: UIColor {
+            return Theme.isDark
+                ? UIColor(red: 52/255, green: 199/255, blue: 89/255, alpha: 1.0)     // #34C759
+                : UIColor(red: 16/255, green: 185/255, blue: 129/255, alpha: 1.0)    // #10B981
+        }
+        
+        /// Disconnected status color
+        static var disconnected: UIColor {
+            return Theme.isDark
+                ? UIColor(red: 107/255, green: 114/255, blue: 128/255, alpha: 1.0)   // #6B7280
+                : UIColor(red: 148/255, green: 163/255, blue: 184/255, alpha: 1.0)   // #94A3B8
+        }
+        
+        static let error = UIColor(red: 239/255, green: 68/255, blue: 68/255, alpha: 1.0)
+        static let accent = UIColor(red: 59/255, green: 130/255, blue: 246/255, alpha: 1.0)
     }
 
-    // MARK: - Layer Shadows
+    // MARK: - Layer Shadows (Neomorphic Depth)
     struct Shadows {
         
-        /// Applies soft elevation shadow for containers and sheets
-        static func applySoftCard(to layer: CALayer) {
-            let isDark = Theme.isDark
-            layer.shadowColor = (isDark ? UIColor.black : UIColor(red: 20/255, green: 30/255, blue: 50/255, alpha: 1.0)).cgColor
-            layer.shadowOffset = CGSize(width: 0, height: 4)
-            layer.shadowRadius = isDark ? 12 : 10
-            layer.shadowOpacity = isDark ? 0.35 : 0.08
-        }
-
-        /// Applies standard button tactile elevation shadow
+        /// Standard circular action button shadow
         static func applyButtonShadow(to layer: CALayer) {
             let isDark = Theme.isDark
-            layer.shadowColor = (isDark ? UIColor.black : UIColor(red: 20/255, green: 30/255, blue: 50/255, alpha: 1.0)).cgColor
-            layer.shadowOffset = CGSize(width: 0, height: 3)
-            layer.shadowRadius = isDark ? 6 : 6
-            layer.shadowOpacity = isDark ? 0.30 : 0.06
+            layer.shadowColor = (isDark ? UIColor.black : UIColor(red: 148/255, green: 163/255, blue: 184/255, alpha: 1.0)).cgColor
+            layer.shadowOffset = CGSize(width: 0, height: 6)
+            layer.shadowRadius = isDark ? 8 : 7
+            layer.shadowOpacity = isDark ? 0.45 : 0.25
+        }
+
+        /// Power button distinctive glow shadow
+        static func applyPowerShadow(to layer: CALayer) {
+            let isDark = Theme.isDark
+            layer.shadowColor = (isDark ? UIColor(red: 52/255, green: 199/255, blue: 89/255, alpha: 1.0) : UIColor(red: 16/255, green: 185/255, blue: 129/255, alpha: 1.0)).cgColor
+            layer.shadowOffset = CGSize(width: 0, height: isDark ? 6 : 8)
+            layer.shadowRadius = isDark ? 8 : 9
+            layer.shadowOpacity = 0.40
+        }
+
+        /// D-Pad outer disc elevation shadow
+        static func applyDpadOuterShadow(to layer: CALayer) {
+            let isDark = Theme.isDark
+            layer.shadowColor = (isDark ? UIColor.black : UIColor(red: 148/255, green: 163/255, blue: 184/255, alpha: 1.0)).cgColor
+            layer.shadowOffset = CGSize(width: 0, height: 16)
+            layer.shadowRadius = 18
+            layer.shadowOpacity = isDark ? 0.50 : 0.35
+        }
+
+        /// D-Pad center OK button depth shadow
+        static func applyDpadCenterShadow(to layer: CALayer) {
+            let isDark = Theme.isDark
+            layer.shadowColor = (isDark ? UIColor.black : UIColor(red: 148/255, green: 163/255, blue: 184/255, alpha: 1.0)).cgColor
+            layer.shadowOffset = CGSize(width: 0, height: isDark ? 8 : 6)
+            layer.shadowRadius = isDark ? 12 : 8
+            layer.shadowOpacity = isDark ? 0.60 : 0.35
+        }
+
+        /// Soft card/sheet shadow
+        static func applySoftCard(to layer: CALayer) {
+            applyButtonShadow(to: layer)
         }
     }
 }

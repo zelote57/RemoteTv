@@ -1,32 +1,51 @@
+// RemoteButton.swift — Circular action button with high-fidelity vector icons
+// Fully compliant with Swift 5.0 and iOS 12.0+ (100% vector CoreGraphics rendering)
+
 import UIKit
 
 class RemoteButton: UIButton {
 
-    enum Style {
-        case round
-        case pill
-        case squareRounded
+    enum IconType {
+        case back
+        case playPause
+        case home
+        case none
     }
 
-    private let style: Style
+    private let iconType: IconType
 
-    init(title: String? = nil, icon: UIImage? = nil, style: Style = .round) {
-        self.style = style
+    init(iconType: IconType) {
+        self.iconType = iconType
         super.init(frame: .zero)
-        
-        applyTheme()
-        if let title = title {
-            setTitle(title, for: .normal)
+        setup()
+    }
+
+    // Convenience initializer for backwards compatibility
+    convenience init(title: String? = nil, style: Int = 0) {
+        if title == "←" {
+            self.init(iconType: .back)
+        } else if title == "⏯" {
+            self.init(iconType: .playPause)
+        } else if title == "⌂" {
+            self.init(iconType: .home)
+        } else {
+            self.init(iconType: .none)
+            if let title = title {
+                setTitle(title, for: .normal)
+            }
         }
-        if let icon = icon {
-            setImage(icon, for: .normal)
-        }
-        setupActions()
     }
 
     required init?(coder: NSCoder) {
-        self.style = .round
+        self.iconType = .none
         super.init(coder: coder)
+        setup()
+    }
+
+    private func setup() {
+        clipsToBounds = false
+        contentMode = .redraw
+        
         applyTheme()
         setupActions()
     }
@@ -36,23 +55,17 @@ class RemoteButton: UIButton {
         layer.borderColor = Theme.Colors.border.cgColor
         layer.borderWidth = 1.0
         
-        titleLabel?.font = UIFont.systemFont(ofSize: 24, weight: .semibold)
         tintColor = Theme.Colors.textPrimary
         setTitleColor(Theme.Colors.textPrimary, for: .normal)
         
         Theme.Shadows.applyButtonShadow(to: layer)
+        setNeedsDisplay()
     }
 
     override func layoutSubviews() {
         super.layoutSubviews()
-        switch style {
-        case .round:
-            layer.cornerRadius = bounds.width / 2.0
-        case .pill:
-            layer.cornerRadius = bounds.height / 2.0
-        case .squareRounded:
-            layer.cornerRadius = 16.0
-        }
+        layer.cornerRadius = bounds.width / 2.0
+        Theme.Shadows.applyButtonShadow(to: layer)
     }
 
     private func setupActions() {
@@ -64,7 +77,7 @@ class RemoteButton: UIButton {
         HapticManager.playTactileClick()
         
         UIView.animate(withDuration: 0.10, delay: 0, options: [.curveEaseOut], animations: {
-            self.transform = CGAffineTransform(scaleX: 0.93, y: 0.93)
+            self.transform = CGAffineTransform(scaleX: 0.94, y: 0.94)
             self.backgroundColor = Theme.Colors.surfacePressed
         })
     }
@@ -74,5 +87,93 @@ class RemoteButton: UIButton {
             self.transform = .identity
             self.backgroundColor = Theme.Colors.surface
         })
+    }
+
+    override func draw(_ rect: CGRect) {
+        guard let ctx = UIGraphicsGetCurrentContext(), iconType != .none else { return }
+
+        let center = CGPoint(x: rect.midX, y: rect.midY)
+        let iconColor = Theme.Colors.textPrimary
+
+        switch iconType {
+        case .back:
+            // High-fidelity iOS Arrow Backward
+            ctx.setStrokeColor(iconColor.cgColor)
+            ctx.setLineWidth(2.4)
+            ctx.setLineCap(.round)
+            ctx.setLineJoin(.round)
+
+            let length: CGFloat = 8.5
+            // Horizontal stem
+            let line = UIBezierPath()
+            line.move(to: CGPoint(x: center.x + length, y: center.y))
+            line.addLine(to: CGPoint(x: center.x - length, y: center.y))
+            line.stroke()
+
+            // Chevron head
+            let head = UIBezierPath()
+            head.move(to: CGPoint(x: center.x - length + 6.5, y: center.y - 6.5))
+            head.addLine(to: CGPoint(x: center.x - length, y: center.y))
+            head.addLine(to: CGPoint(x: center.x - length + 6.5, y: center.y + 6.5))
+            head.stroke()
+
+        case .playPause:
+            ctx.setFillColor(iconColor.cgColor)
+
+            // Play Triangle
+            let playPath = UIBezierPath()
+            let playLeft = center.x - 11.0
+            let playRight = center.x - 1.5
+            let playTop = center.y - 7.5
+            let playBottom = center.y + 7.5
+
+            playPath.move(to: CGPoint(x: playLeft, y: playTop))
+            playPath.addLine(to: CGPoint(x: playRight, y: center.y))
+            playPath.addLine(to: CGPoint(x: playLeft, y: playBottom))
+            playPath.close()
+            playPath.fill()
+
+            // Pause Dual Bars
+            let barWidth: CGFloat = 3.2
+            let barHeight: CGFloat = 14.0
+            let barTop = center.y - (barHeight / 2.0)
+            let barRadius: CGFloat = 1.0
+
+            let bar1Rect = CGRect(x: center.x + 3.0, y: barTop, width: barWidth, height: barHeight)
+            let bar1 = UIBezierPath(roundedRect: bar1Rect, cornerRadius: barRadius)
+            bar1.fill()
+
+            let bar2Rect = CGRect(x: center.x + 8.5, y: barTop, width: barWidth, height: barHeight)
+            let bar2 = UIBezierPath(roundedRect: bar2Rect, cornerRadius: barRadius)
+            bar2.fill()
+
+        case .home:
+            ctx.setFillColor(iconColor.cgColor)
+
+            // Apple-style Home icon with interior door cutout
+            let homePath = UIBezierPath()
+            let apex = CGPoint(x: center.x, y: center.y - 9.5)
+            let leftEave = CGPoint(x: center.x - 9.5, y: center.y - 2.0)
+            let rightEave = CGPoint(x: center.x + 9.5, y: center.y - 2.0)
+            let leftBase = CGPoint(x: center.x - 7.5, y: center.y + 8.5)
+            let rightBase = CGPoint(x: center.x + 7.5, y: center.y + 8.5)
+
+            homePath.move(to: apex)
+            homePath.addLine(to: rightEave)
+            homePath.addLine(to: CGPoint(x: center.x + 7.5, y: center.y - 0.5))
+            homePath.addLine(to: rightBase)
+            homePath.addLine(to: CGPoint(x: center.x + 2.5, y: center.y + 8.5))
+            homePath.addLine(to: CGPoint(x: center.x + 2.5, y: center.y + 2.5))
+            homePath.addLine(to: CGPoint(x: center.x - 2.5, y: center.y + 2.5))
+            homePath.addLine(to: CGPoint(x: center.x - 2.5, y: center.y + 8.5))
+            homePath.addLine(to: leftBase)
+            homePath.addLine(to: CGPoint(x: center.x - 7.5, y: center.y - 0.5))
+            homePath.addLine(to: leftEave)
+            homePath.close()
+            homePath.fill()
+
+        case .none:
+            break
+        }
     }
 }

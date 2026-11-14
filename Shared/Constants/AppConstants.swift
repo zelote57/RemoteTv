@@ -99,25 +99,26 @@ enum AppConstants {
         static let directionEndLong: Int = 2
     }
 
-    // MARK: - UI Metrics & Dimensions (iPhone 6 Plus 414 x 736 pt target)
+    // MARK: - UI Metrics & Dimensions (Stitch Design & iPhone 6 Plus 414 x 736 pt target)
     enum UI {
-        static let dpadDiameter: CGFloat = 268.0
-        static let dpadCenterRatio: CGFloat = 0.42
+        static let dpadDiameter: CGFloat = 280.0
+        static let dpadCenterDiameter: CGFloat = 120.0
+        static let dpadCenterRatio: CGFloat = 120.0 / 280.0
         
-        static let actionButtonSize: CGFloat = 72.0
-        static let powerButtonSize: CGFloat = 46.0
-        static let themeToggleButtonSize: CGFloat = 40.0
-        static let pickerChevronSize: CGFloat = 44.0
+        static let actionButtonSize: CGFloat = 70.0
+        static let powerButtonSize: CGFloat = 48.0
+        static let themeToggleButtonSize: CGFloat = 48.0
+        static let pickerChevronSize: CGFloat = 48.0
         
         static let headerHeight: CGFloat = 48.0
         static let headerHorizontalInset: CGFloat = 20.0
-        static let headerTopOffset: CGFloat = 16.0
+        static let headerTopOffset: CGFloat = 14.0
         
-        static let actionsRowSpacing: CGFloat = 32.0
-        static let actionsRowTopSpacing: CGFloat = 46.0
-        static let centerVerticalOffset: CGFloat = 28.0
+        static let actionsRowSpacing: CGFloat = 36.0
+        static let actionsRowTopSpacing: CGFloat = 44.0
+        static let centerVerticalOffset: CGFloat = 20.0
         
-        static let statusDotDiameter: CGFloat = 7.0
+        static let statusDotDiameter: CGFloat = 8.0
         static let borderWidthStandard: CGFloat = 1.0
         static let defaultAnimationDuration: TimeInterval = 0.25
     }

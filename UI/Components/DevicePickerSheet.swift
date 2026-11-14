@@ -1,3 +1,6 @@
+// DevicePickerSheet.swift — Modal bottom sheet for TV discovery matching Stitch design
+// Fully compliant with Swift 5.0 and iOS 12.0+
+
 import UIKit
 
 protocol DevicePickerDelegate: AnyObject {
@@ -36,15 +39,17 @@ class DevicePickerSheet: UIViewController, UITableViewDataSource, UITableViewDel
         containerView.backgroundColor = Theme.Colors.surface
         containerView.layer.cornerRadius = 24.0
         containerView.layer.maskedCorners = [.layerMinXMinYCorner, .layerMaxXMinYCorner]
+        containerView.layer.borderWidth = 1.0
+        containerView.layer.borderColor = Theme.Colors.border.cgColor
         containerView.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(containerView)
 
-        grabberHandle.backgroundColor = Theme.Colors.border
+        grabberHandle.backgroundColor = Theme.Colors.textSecondary.withAlphaComponent(0.3)
         grabberHandle.layer.cornerRadius = 2.5
         grabberHandle.translatesAutoresizingMaskIntoConstraints = false
         containerView.addSubview(grabberHandle)
 
-        titleLabel.text = "Televisores Detectados"
+        titleLabel.text = L10n.Picker.title
         titleLabel.font = UIFont.systemFont(ofSize: 18, weight: .bold)
         titleLabel.textColor = Theme.Colors.textPrimary
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
@@ -63,7 +68,7 @@ class DevicePickerSheet: UIViewController, UITableViewDataSource, UITableViewDel
         tableView.translatesAutoresizingMaskIntoConstraints = false
         containerView.addSubview(tableView)
 
-        emptyLabel.text = "Buscando dispositivos en la red..."
+        emptyLabel.text = L10n.Picker.searching
         emptyLabel.font = UIFont.systemFont(ofSize: 14, weight: .medium)
         emptyLabel.textColor = Theme.Colors.textSecondary
         emptyLabel.textAlignment = .center
@@ -114,7 +119,7 @@ class DevicePickerSheet: UIViewController, UITableViewDataSource, UITableViewDel
         let tv = devices[indexPath.row]
         
         cell.backgroundColor = .clear
-        cell.textLabel?.text = "📺  \(tv.name)"
+        cell.textLabel?.text = L10n.Picker.deviceFormat(name: tv.name)
         cell.textLabel?.font = UIFont.systemFont(ofSize: 16, weight: .semibold)
         cell.textLabel?.textColor = Theme.Colors.textPrimary
         cell.accessoryType = .disclosureIndicator
@@ -126,7 +131,8 @@ class DevicePickerSheet: UIViewController, UITableViewDataSource, UITableViewDel
         tableView.deselectRow(at: indexPath, animated: true)
         let selected = devices[indexPath.row]
         HapticManager.playTactileClick()
-        dismiss(animated: true) {
+        dismiss(animated: true) { [weak self] in
+            guard let self = self else { return }
             self.delegate?.devicePickerDidSelectDevice(self, device: selected)
         }
     }
