@@ -302,7 +302,7 @@ class RemoteViewController: UIViewController, GoogleTVClientDelegate, DPadViewDe
         updateStatusUI(status)
 
         if case .pairingRequired(let name) = status {
-            showPairingDialog(for: name)
+            showPairingViewController(for: name)
         }
     }
 
@@ -316,18 +316,19 @@ class RemoteViewController: UIViewController, GoogleTVClientDelegate, DPadViewDe
             statusDot.layer.shadowOpacity = 0
 
         case .searching:
-            tvNameLabel.text = client.currentTVName ?? L10n.Header.searchingTv
+            tvNameLabel.text = L10n.Header.searchingTv
             statusDot.backgroundColor = Theme.Colors.accent
             statusSubtitleLabel.text = L10n.Status.searching
             statusSubtitleLabel.textColor = Theme.Colors.accent
             statusDot.layer.shadowOpacity = 0
 
-        case .ready(let name):
+        case .discovered(let name):
+            // TV found on network, NOT connected — show amber "Available" indicator
             tvNameLabel.text = name
-            statusDot.backgroundColor = Theme.Colors.connected
-            statusSubtitleLabel.text = L10n.Status.connected
-            statusSubtitleLabel.textColor = Theme.Colors.connected
-            applyConnectedDotGlow()
+            statusDot.backgroundColor = Theme.Colors.sunYellow
+            statusSubtitleLabel.text = L10n.Status.discovered
+            statusSubtitleLabel.textColor = Theme.Colors.sunYellow
+            statusDot.layer.shadowOpacity = 0
 
         case .connecting(let name):
             tvNameLabel.text = name
@@ -370,25 +371,13 @@ class RemoteViewController: UIViewController, GoogleTVClientDelegate, DPadViewDe
         }
     }
 
-    private func showPairingDialog(for name: String) {
-        let alert = UIAlertController(
-            title: L10n.Pairing.dialogTitle,
-            message: L10n.Pairing.dialogMessage(deviceName: name),
-            preferredStyle: .alert
-        )
-        alert.addTextField { tf in
-            tf.placeholder = L10n.Pairing.pinPlaceholder
-            tf.autocapitalizationType = .allCharacters
-            tf.textAlignment = .center
-            tf.font = UIFont.systemFont(ofSize: 22, weight: .bold)
-        }
-        alert.addAction(UIAlertAction(title: L10n.Pairing.pairButton, style: .default, handler: { [weak self] _ in
-            if let pin = alert.textFields?.first?.text?.trimmingCharacters(in: .whitespacesAndNewlines), !pin.isEmpty {
-                self?.client.submitPin(pin)
-            }
-        }))
-        alert.addAction(UIAlertAction(title: L10n.Pairing.cancelButton, style: .cancel))
-        present(alert, animated: true)
+    private func showPairingViewController(for tvName: String) {
+        // Avoid stacking multiple pairing modals if status fires more than once
+        guard presentedViewController == nil else { return }
+        let pairingVC = PairingViewController(tvName: tvName, client: client)
+        pairingVC.modalPresentationStyle = .overFullScreen
+        pairingVC.modalTransitionStyle = .crossDissolve
+        present(pairingVC, animated: true)
     }
 }
 

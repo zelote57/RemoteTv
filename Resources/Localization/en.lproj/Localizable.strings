@@ -7,6 +7,7 @@
 // MARK: - Connection States
 "status.disconnected" = "Disconnected";
 "status.searching" = "Searching on network…";
+"status.discovered" = "Available";
 "status.connecting" = "Connecting…";
 "status.connected" = "Connected";
 "status.pairing_required" = "Enter PIN on screen";
@@ -23,6 +24,12 @@
 "pairing.pin_placeholder" = "Code (e.g. AB12CD)";
 "pairing.pair_button" = "Pair";
 "pairing.cancel_button" = "Cancel";
+"pairing.instruction_title" = "Look at your TV screen";
+"pairing.instruction_desc" = "A pairing code will appear on the TV. Enter it here to connect your iPhone.";
+"pairing.tv_name_prefix" = "TV: %@";
+"pairing.error_bad_pin" = "Incorrect code. Check the TV screen and try again.";
+"pairing.error_timeout" = "Timed out. The TV did not respond.";
+"pairing.retry_button" = "Try Again";
 
 // MARK: - Device Picker Sheet
 "picker.title" = "Available Devices";

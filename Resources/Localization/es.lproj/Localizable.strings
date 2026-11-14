@@ -7,9 +7,10 @@
 // MARK: - Connection States
 "status.disconnected" = "Desconectado";
 "status.searching" = "Buscando en red…";
+"status.discovered" = "Disponible";
 "status.connecting" = "Conectando…";
 "status.connected" = "Conectado";
-"status.pairing_required" = "Ingresar PIN en pantalla";
+"status.pairing_required" = "Ingresa el PIN en pantalla";
 "status.error_prefix" = "Error: %@";
 
 // MARK: - Device Header
@@ -23,6 +24,12 @@
 "pairing.pin_placeholder" = "Código (ej. AB12CD)";
 "pairing.pair_button" = "Emparejar";
 "pairing.cancel_button" = "Cancelar";
+"pairing.instruction_title" = "Mira la pantalla del televisor";
+"pairing.instruction_desc" = "Aparecerá un código de emparejamiento. Ingrésalo aquí para conectar tu iPhone.";
+"pairing.tv_name_prefix" = "TV: %@";
+"pairing.error_bad_pin" = "Código incorrecto. Verifica la pantalla del televisor e inténtalo de nuevo.";
+"pairing.error_timeout" = "Tiempo de espera agotado. El televisor no respondió.";
+"pairing.retry_button" = "Reintentar";
 
 // MARK: - Device Picker Sheet
 "picker.title" = "Dispositivos Disponibles";

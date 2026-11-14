@@ -17,6 +17,7 @@
 		A00100092900000100000001 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B00100102900000100000001 /* Assets.xcassets */; };
 		A00100112900000100000001 /* GoogleTVDiscovery.swift in Sources */ = {isa = PBXBuildFile; fileRef = B00100122900000100000001 /* GoogleTVDiscovery.swift */; };
 		A00100122900000100000001 /* DevicePickerSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = B00100132900000100000001 /* DevicePickerSheet.swift */; };
+		A00100292900000100000001 /* PairingViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B00100292900000100000001 /* PairingViewController.swift */; };
 		A00100132900000100000001 /* CertificateStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = B00100142900000100000001 /* CertificateStore.swift */; };
 		A00100142900000100000001 /* PairingService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B00100152900000100000001 /* PairingService.swift */; };
 		A00100152900000100000001 /* RemoteService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B00100162900000100000001 /* RemoteService.swift */; };
@@ -45,6 +46,7 @@
 		B00100102900000100000001 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		B00100122900000100000001 /* GoogleTVDiscovery.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GoogleTVDiscovery.swift; sourceTree = "<group>"; };
 		B00100132900000100000001 /* DevicePickerSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DevicePickerSheet.swift; sourceTree = "<group>"; };
+		B00100292900000100000001 /* PairingViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PairingViewController.swift; sourceTree = "<group>"; };
 		B00100142900000100000001 /* CertificateStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CertificateStore.swift; sourceTree = "<group>"; };
 		B00100152900000100000001 /* PairingService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PairingService.swift; sourceTree = "<group>"; };
 		B00100162900000100000001 /* RemoteService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteService.swift; sourceTree = "<group>"; };
@@ -99,6 +101,7 @@
 			isa = PBXGroup;
 			children = (
 				B00100072900000100000001 /* RemoteViewController.swift */,
+				B00100292900000100000001 /* PairingViewController.swift */,
 				E00100062900000100000001 /* Components */,
 			);
 			path = UI;
@@ -269,6 +272,7 @@
 				A00100072900000100000001 /* RemoteViewController.swift in Sources */,
 				A00100112900000100000001 /* GoogleTVDiscovery.swift in Sources */,
 				A00100122900000100000001 /* DevicePickerSheet.swift in Sources */,
+				A00100292900000100000001 /* PairingViewController.swift in Sources */,
 				A00100132900000100000001 /* CertificateStore.swift in Sources */,
 				A00100142900000100000001 /* PairingService.swift in Sources */,
 				A00100152900000100000001 /* RemoteService.swift in Sources */,

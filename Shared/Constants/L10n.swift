@@ -15,6 +15,10 @@ enum L10n {
         static var searching: String {
             return "status.searching".localized
         }
+
+        static var discovered: String {
+            return "status.discovered".localized
+        }
         
         static var connecting: String {
             return "status.connecting".localized
@@ -68,6 +72,30 @@ enum L10n {
         
         static var cancelButton: String {
             return "pairing.cancel_button".localized
+        }
+
+        static var instructionTitle: String {
+            return "pairing.instruction_title".localized
+        }
+
+        static var instructionDesc: String {
+            return "pairing.instruction_desc".localized
+        }
+
+        static func tvNamePrefix(_ name: String) -> String {
+            return "pairing.tv_name_prefix".localizedFormat(name)
+        }
+
+        static var errorBadPin: String {
+            return "pairing.error_bad_pin".localized
+        }
+
+        static var errorTimeout: String {
+            return "pairing.error_timeout".localized
+        }
+
+        static var retryButton: String {
+            return "pairing.retry_button".localized
         }
     }
     
