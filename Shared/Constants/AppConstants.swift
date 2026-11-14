@@ -106,6 +106,7 @@ enum AppConstants {
         static let dpadCenterRatio: CGFloat = 120.0 / 280.0
         
         static let actionButtonSize: CGFloat = 70.0
+        static let headerButtonSize: CGFloat = 48.0
         static let powerButtonSize: CGFloat = 48.0
         static let themeToggleButtonSize: CGFloat = 48.0
         static let pickerChevronSize: CGFloat = 48.0
