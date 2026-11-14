@@ -25,9 +25,33 @@
 "pairing.cancel_button" = "Cancel";
 
 // MARK: - Device Picker Sheet
-"picker.title" = "Discovered TVs";
+"picker.title" = "Available Devices";
 "picker.searching" = "Searching for devices on network...";
 "picker.device_format" = "📺  %@";
+"picker.wifi_badge" = "Wi-Fi";
+"picker.detected_count" = "%d detected";
+"picker.scanning_local_network" = "Scanning local network";
+"picker.active_search" = "Active scan";
+"picker.search_completed" = "Scan completed";
+"picker.current_badge" = "Current";
+"picker.connected_status" = "Connected";
+"picker.available_status" = "Available";
+"picker.scan_again" = "Scan Again";
+"picker.retry_search" = "Retry search";
+"picker.connect_manual_ip" = "Connect manually via IP address";
+"picker.empty_title" = "No TVs found";
+"picker.empty_description" = "Could not detect any active Android TV, Google TV or WebOS on your current network.";
+"picker.troubleshooting_title" = "Troubleshooting tips";
+"picker.tip_wifi_title" = "Same Wi-Fi network";
+"picker.tip_wifi_desc" = "Verify your iPhone and TV are not on guest networks or isolated bands (2.4 / 5 GHz).";
+"picker.tip_permission_title" = "iOS Local Network Permission";
+"picker.tip_permission_desc" = "Ensure permission is granted in Settings > Privacy > Local Network.";
+"picker.tip_power_title" = "TV powered on";
+"picker.tip_power_desc" = "Check that the TV is on or in standby with network standby (\"Wake on LAN\") enabled.";
+"picker.manual_ip_title" = "Connect via IP";
+"picker.manual_ip_message" = "Enter the TV's IP address on your local network:";
+"picker.manual_ip_placeholder" = "192.168.1.100";
+"picker.manual_ip_connect" = "Connect";
 
 // MARK: - Common Actions & Alerts
 "common.ok" = "OK";

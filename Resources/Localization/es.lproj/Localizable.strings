@@ -25,9 +25,33 @@
 "pairing.cancel_button" = "Cancelar";
 
 // MARK: - Device Picker Sheet
-"picker.title" = "Televisores Detectados";
+"picker.title" = "Dispositivos Disponibles";
 "picker.searching" = "Buscando dispositivos en la red...";
 "picker.device_format" = "📺  %@";
+"picker.wifi_badge" = "Wi-Fi";
+"picker.detected_count" = "%d detectados";
+"picker.scanning_local_network" = "Escaneando red local";
+"picker.active_search" = "Búsqueda activa";
+"picker.search_completed" = "Búsqueda finalizada";
+"picker.current_badge" = "Actual";
+"picker.connected_status" = "Conectado";
+"picker.available_status" = "Disponible";
+"picker.scan_again" = "Escanear de Nuevo";
+"picker.retry_search" = "Reintentar búsqueda";
+"picker.connect_manual_ip" = "Conectar manualmente por dirección IP";
+"picker.empty_title" = "No se encontraron televisores";
+"picker.empty_description" = "No pudimos detectar ningún Android TV, Google TV o WebOS encendido en tu red actual.";
+"picker.troubleshooting_title" = "Consejos para solucionar problemas";
+"picker.tip_wifi_title" = "Misma red Wi-Fi";
+"picker.tip_wifi_desc" = "Verifica que tu iPhone y la TV no estén en redes de invitados ni bandas aisladas (2.4 / 5 GHz).";
+"picker.tip_permission_title" = "Permiso de Red Local en iOS";
+"picker.tip_permission_desc" = "Asegúrate de permitir el permiso en Ajustes > Privacidad > Red local.";
+"picker.tip_power_title" = "Televisor encendido";
+"picker.tip_power_desc" = "Comprueba que la TV esté activa o en reposo con modo red habilitado (\"Wake on LAN\").";
+"picker.manual_ip_title" = "Conectar por IP";
+"picker.manual_ip_message" = "Ingresa la dirección IP del televisor en tu red local:";
+"picker.manual_ip_placeholder" = "192.168.1.100";
+"picker.manual_ip_connect" = "Conectar";
 
 // MARK: - Common Actions & Alerts
 "common.ok" = "Entendido";

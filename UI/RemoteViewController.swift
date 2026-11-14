@@ -278,10 +278,10 @@ class RemoteViewController: UIViewController, GoogleTVClientDelegate, DPadViewDe
         sheet.modalTransitionStyle = .crossDissolve
         sheet.delegate = self
         sheet.devices = discovery.devices
+        sheet.currentConnectedHost = client.currentHost
+        sheet.isScanning = true
 
-        if discovery.devices.isEmpty {
-            discovery.startDiscovery()
-        }
+        discovery.startDiscovery()
 
         present(sheet, animated: true)
     }
@@ -290,6 +290,10 @@ class RemoteViewController: UIViewController, GoogleTVClientDelegate, DPadViewDe
 
     func devicePickerDidSelectDevice(_ picker: DevicePickerSheet, device: DiscoveredTV) {
         client.connect(to: device)
+    }
+
+    func devicePickerDidRequestScanAgain(_ picker: DevicePickerSheet) {
+        discovery.startDiscovery()
     }
 
     // MARK: - Client Delegate & Estado Visual

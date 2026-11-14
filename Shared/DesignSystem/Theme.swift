@@ -141,6 +141,92 @@ struct Theme {
         
         static let error = UIColor(red: 239/255, green: 68/255, blue: 68/255, alpha: 1.0)
         static let accent = UIColor(red: 59/255, green: 130/255, blue: 246/255, alpha: 1.0)
+
+        // MARK: - Bottom Sheet Semantic Tokens (Stitch Second Version)
+
+        /// Modal background surface
+        static var sheetBackground: UIColor {
+            return Theme.isDark
+                ? UIColor(red: 20/255, green: 24/255, blue: 35/255, alpha: 0.98)       // #141823
+                : UIColor(white: 1.0, alpha: 0.98)                                      // #FFFFFF
+        }
+
+        /// Dimmed backdrop overlay
+        static var sheetBackdrop: UIColor {
+            return Theme.isDark
+                ? UIColor(red: 6/255, green: 8/255, blue: 13/255, alpha: 0.75)         // #06080D / 75%
+                : UIColor(red: 15/255, green: 23/255, blue: 42/255, alpha: 0.40)       // Slate 900 / 40%
+        }
+
+        /// Pull down grabber handle
+        static var sheetGrabber: UIColor {
+            return Theme.isDark
+                ? UIColor(red: 113/255, green: 113/255, blue: 122/255, alpha: 0.50)
+                : UIColor(red: 148/255, green: 163/255, blue: 184/255, alpha: 0.50)
+        }
+
+        /// Inactive/Available device item background
+        static var sheetCardBackground: UIColor {
+            return Theme.isDark
+                ? UIColor(red: 35/255, green: 42/255, blue: 58/255, alpha: 0.85)       // #232A3A
+                : UIColor(red: 248/255, green: 250/255, blue: 252/255, alpha: 1.0)    // #F8FAFC
+        }
+
+        /// Inactive/Available device item border
+        static var sheetCardBorder: UIColor {
+            return Theme.isDark
+                ? UIColor(white: 1.0, alpha: 0.06)
+                : UIColor(red: 226/255, green: 232/255, blue: 240/255, alpha: 1.0)    // #E2E8F0
+        }
+
+        /// Active / Currently connected device item background
+        static var sheetActiveCardBackground: UIColor {
+            return Theme.isDark
+                ? UIColor(red: 5/255, green: 46/255, blue: 22/255, alpha: 0.35)
+                : UIColor(red: 240/255, green: 253/255, blue: 244/255, alpha: 1.0)    // #F0FDF4
+        }
+
+        /// Active / Currently connected device item border
+        static var sheetActiveCardBorder: UIColor {
+            return Theme.isDark
+                ? UIColor(red: 16/255, green: 185/255, blue: 129/255, alpha: 0.40)    // Emerald 500 / 40%
+                : UIColor(red: 134/255, green: 239/255, blue: 172/255, alpha: 1.0)    // Emerald 300
+        }
+
+        /// "Actual" / "Current" badge background
+        static var badgeCurrentBackground: UIColor {
+            return Theme.isDark
+                ? UIColor(red: 16/255, green: 185/255, blue: 129/255, alpha: 0.20)
+                : UIColor(red: 220/255, green: 252/255, blue: 231/255, alpha: 1.0)    // #DCFCE7
+        }
+
+        /// "Actual" / "Current" badge text
+        static var badgeCurrentText: UIColor {
+            return Theme.isDark
+                ? UIColor(red: 52/255, green: 211/255, blue: 153/255, alpha: 1.0)    // #34D399
+                : UIColor(red: 21/255, green: 128/255, blue: 61/255, alpha: 1.0)     // #15803D
+        }
+
+        /// Wi-Fi badge background
+        static var badgeWifiBackground: UIColor {
+            return Theme.isDark
+                ? UIColor(red: 59/255, green: 130/255, blue: 246/255, alpha: 0.20)
+                : UIColor(red: 219/255, green: 234/255, blue: 254/255, alpha: 1.0)    // #DBEAFE
+        }
+
+        /// Wi-Fi badge text
+        static var badgeWifiText: UIColor {
+            return Theme.isDark
+                ? UIColor(red: 96/255, green: 165/255, blue: 250/255, alpha: 1.0)    // #60A5FA
+                : UIColor(red: 29/255, green: 78/255, blue: 216/255, alpha: 1.0)     // #1D4ED8
+        }
+
+        /// Primary action button (Scan again / Retry)
+        static let primaryButton = UIColor(red: 37/255, green: 99/255, blue: 235/255, alpha: 1.0) // #2563EB
+        static let primaryButtonPressed = UIColor(red: 29/255, green: 78/255, blue: 216/255, alpha: 1.0)
+
+        /// Empty state alert red
+        static let alertRed = UIColor(red: 244/255, green: 63/255, blue: 94/255, alpha: 1.0)
     }
 
     // MARK: - Layer Shadows (Neomorphic Depth)

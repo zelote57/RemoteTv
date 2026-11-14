@@ -20,6 +20,10 @@ class GoogleTVDiscovery: NSObject, NetServiceBrowserDelegate, NetServiceDelegate
         didSet {
             DispatchQueue.main.async {
                 self.delegate?.discoveryDidUpdateDevices(self, devices: self.devices)
+                NotificationCenter.default.post(
+                    name: NSNotification.Name("GoogleTVDiscoveryDidUpdateDevicesNotification"),
+                    object: self.devices
+                )
             }
         }
     }
