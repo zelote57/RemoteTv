@@ -1,5 +1,5 @@
 // RemoteButton.swift — Circular action button with high-fidelity vector icons
-// Fully compliant with Swift 5.0 and iOS 12.0+ (100% vector CoreGraphics rendering)
+// Fully compliant with Swift 5.0 and iOS 12.0+ (100% vector CoreGraphics rendering, zero square artifacts)
 
 import UIKit
 
@@ -13,6 +13,12 @@ class RemoteButton: UIButton {
     }
 
     private let iconType: IconType
+
+    override var isHighlighted: Bool {
+        didSet {
+            setNeedsDisplay()
+        }
+    }
 
     init(iconType: IconType) {
         self.iconType = iconType
@@ -43,6 +49,8 @@ class RemoteButton: UIButton {
     }
 
     private func setup() {
+        // Crucial: keep view background clear so CoreGraphics can draw a pure anti-aliased circle
+        backgroundColor = .clear
         clipsToBounds = false
         contentMode = .redraw
         
@@ -51,20 +59,15 @@ class RemoteButton: UIButton {
     }
 
     func applyTheme() {
-        backgroundColor = Theme.Colors.surface
-        layer.borderColor = Theme.Colors.border.cgColor
-        layer.borderWidth = 1.0
-        
-        tintColor = Theme.Colors.textPrimary
-        setTitleColor(Theme.Colors.textPrimary, for: .normal)
-        
         Theme.Shadows.applyButtonShadow(to: layer)
         setNeedsDisplay()
     }
 
     override func layoutSubviews() {
         super.layoutSubviews()
-        layer.cornerRadius = bounds.width / 2.0
+        guard bounds.width > 0 else { return }
+        let circleRect = bounds.insetBy(dx: 1.5, dy: 1.5)
+        layer.shadowPath = UIBezierPath(ovalIn: circleRect).cgPath
         Theme.Shadows.applyButtonShadow(to: layer)
     }
 
@@ -78,26 +81,38 @@ class RemoteButton: UIButton {
         
         UIView.animate(withDuration: 0.10, delay: 0, options: [.curveEaseOut], animations: {
             self.transform = CGAffineTransform(scaleX: 0.94, y: 0.94)
-            self.backgroundColor = Theme.Colors.surfacePressed
         })
     }
 
     @objc private func handleTouchUp() {
         UIView.animate(withDuration: 0.22, delay: 0, usingSpringWithDamping: 0.6, initialSpringVelocity: 0.8, options: [], animations: {
             self.transform = .identity
-            self.backgroundColor = Theme.Colors.surface
         })
     }
 
     override func draw(_ rect: CGRect) {
-        guard let ctx = UIGraphicsGetCurrentContext(), iconType != .none else { return }
+        guard let ctx = UIGraphicsGetCurrentContext() else { return }
+
+        // 1. Draw pure circular surface background & border
+        let circleRect = rect.insetBy(dx: 1.5, dy: 1.5)
+        let circlePath = UIBezierPath(ovalIn: circleRect)
+
+        let surfaceColor = isHighlighted ? Theme.Colors.surfacePressed : Theme.Colors.surface
+        ctx.setFillColor(surfaceColor.cgColor)
+        circlePath.fill()
+
+        ctx.setStrokeColor(Theme.Colors.border.cgColor)
+        ctx.setLineWidth(1.0)
+        circlePath.stroke()
+
+        guard iconType != .none else { return }
 
         let center = CGPoint(x: rect.midX, y: rect.midY)
         let iconColor = Theme.Colors.textPrimary
 
+        // 2. Draw Vector Icons
         switch iconType {
         case .back:
-            // High-fidelity iOS Arrow Backward
             ctx.setStrokeColor(iconColor.cgColor)
             ctx.setLineWidth(2.4)
             ctx.setLineCap(.round)

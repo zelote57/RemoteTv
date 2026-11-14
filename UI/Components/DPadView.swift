@@ -79,6 +79,7 @@ class DPadView: UIView {
         guard size > 0 else { return }
 
         layer.cornerRadius = size / 2.0
+        layer.shadowPath = UIBezierPath(ovalIn: bounds).cgPath
         Theme.Shadows.applyDpadOuterShadow(to: layer)
 
         // Center OK button dimensions (120 pt on standard size)
@@ -86,6 +87,7 @@ class DPadView: UIView {
         let centerOrigin = (size - centerSize) / 2.0
         centerButton.frame = CGRect(x: centerOrigin, y: centerOrigin, width: centerSize, height: centerSize)
         centerButton.layer.cornerRadius = centerSize / 2.0
+        centerButton.layer.shadowPath = UIBezierPath(ovalIn: centerButton.bounds).cgPath
         Theme.Shadows.applyDpadCenterShadow(to: centerButton.layer)
 
         let armLength = centerOrigin

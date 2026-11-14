@@ -1,5 +1,5 @@
 // PowerButton.swift — Circular power button matching Stitch design
-// Fully compliant with Swift 5.0 and iOS 12.0+ (100% vector CoreGraphics rendering)
+// Fully compliant with Swift 5.0 and iOS 12.0+ (100% vector CoreGraphics rendering, pure circular bounds)
 
 import UIKit
 
@@ -33,6 +33,9 @@ class PowerButton: UIButton {
 
     override func layoutSubviews() {
         super.layoutSubviews()
+        guard bounds.width > 0 else { return }
+        let circleRect = bounds.insetBy(dx: 2.0, dy: 2.0)
+        layer.shadowPath = UIBezierPath(ovalIn: circleRect).cgPath
         Theme.Shadows.applyPowerShadow(to: layer)
     }
 

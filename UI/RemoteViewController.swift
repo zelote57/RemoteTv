@@ -392,6 +392,12 @@ class RemoteViewController: UIViewController, GoogleTVClientDelegate, DPadViewDe
 
 private class ThemeToggleButton: UIButton {
 
+    override var isHighlighted: Bool {
+        didSet {
+            setNeedsDisplay()
+        }
+    }
+
     override init(frame: CGRect) {
         super.init(frame: frame)
         setup()
@@ -403,6 +409,7 @@ private class ThemeToggleButton: UIButton {
     }
 
     private func setup() {
+        backgroundColor = .clear
         clipsToBounds = false
         contentMode = .redraw
         
@@ -413,16 +420,15 @@ private class ThemeToggleButton: UIButton {
     }
 
     func applyTheme() {
-        backgroundColor = Theme.Colors.surface
-        layer.borderColor = Theme.Colors.border.cgColor
-        layer.borderWidth = 1.0
         Theme.Shadows.applyButtonShadow(to: layer)
         setNeedsDisplay()
     }
 
     override func layoutSubviews() {
         super.layoutSubviews()
-        layer.cornerRadius = bounds.width / 2.0
+        guard bounds.width > 0 else { return }
+        let circleRect = bounds.insetBy(dx: 1.5, dy: 1.5)
+        layer.shadowPath = UIBezierPath(ovalIn: circleRect).cgPath
         Theme.Shadows.applyButtonShadow(to: layer)
     }
 
@@ -430,24 +436,34 @@ private class ThemeToggleButton: UIButton {
         HapticManager.playTactileClick()
         UIView.animate(withDuration: 0.10, delay: 0, options: [.curveEaseOut], animations: {
             self.transform = CGAffineTransform(scaleX: 0.94, y: 0.94)
-            self.backgroundColor = Theme.Colors.surfacePressed
         })
     }
 
     @objc private func handleTouchUp() {
         UIView.animate(withDuration: 0.22, delay: 0, usingSpringWithDamping: 0.6, initialSpringVelocity: 0.8, options: [], animations: {
             self.transform = .identity
-            self.backgroundColor = Theme.Colors.surface
         })
     }
 
     override func draw(_ rect: CGRect) {
         guard let ctx = UIGraphicsGetCurrentContext() else { return }
 
+        // 1. Círculo de superficie puro
+        let circleRect = rect.insetBy(dx: 1.5, dy: 1.5)
+        let circlePath = UIBezierPath(ovalIn: circleRect)
+
+        let surfaceColor = isHighlighted ? Theme.Colors.surfacePressed : Theme.Colors.surface
+        ctx.setFillColor(surfaceColor.cgColor)
+        circlePath.fill()
+
+        ctx.setStrokeColor(Theme.Colors.border.cgColor)
+        ctx.setLineWidth(1.0)
+        circlePath.stroke()
+
         let center = CGPoint(x: rect.midX, y: rect.midY)
         let sunColor = Theme.Colors.sunYellow
 
-        // 1. Círculo Central del Sol
+        // 2. Círculo Central del Sol
         let coreRadius: CGFloat = 4.8
         ctx.setFillColor(sunColor.cgColor)
         ctx.fillEllipse(in: CGRect(
@@ -457,7 +473,7 @@ private class ThemeToggleButton: UIButton {
             height: coreRadius * 2.0
         ))
 
-        // 2. Ocho Rayos Solares Concetricos
+        // 3. Ocho Rayos Solares Concéntricos
         ctx.setStrokeColor(sunColor.cgColor)
         ctx.setLineWidth(2.0)
         ctx.setLineCap(.round)
@@ -487,6 +503,12 @@ private class ThemeToggleButton: UIButton {
 
 private class DevicePickerChevronButton: UIButton {
 
+    override var isHighlighted: Bool {
+        didSet {
+            setNeedsDisplay()
+        }
+    }
+
     override init(frame: CGRect) {
         super.init(frame: frame)
         setup()
@@ -498,6 +520,7 @@ private class DevicePickerChevronButton: UIButton {
     }
 
     private func setup() {
+        backgroundColor = .clear
         clipsToBounds = false
         contentMode = .redraw
         
@@ -505,26 +528,37 @@ private class DevicePickerChevronButton: UIButton {
     }
 
     func applyTheme() {
-        backgroundColor = Theme.Colors.surface
-        layer.borderColor = Theme.Colors.border.cgColor
-        layer.borderWidth = 1.0
         Theme.Shadows.applyButtonShadow(to: layer)
         setNeedsDisplay()
     }
 
     override func layoutSubviews() {
         super.layoutSubviews()
-        layer.cornerRadius = bounds.width / 2.0
+        guard bounds.width > 0 else { return }
+        let circleRect = bounds.insetBy(dx: 1.5, dy: 1.5)
+        layer.shadowPath = UIBezierPath(ovalIn: circleRect).cgPath
         Theme.Shadows.applyButtonShadow(to: layer)
     }
 
     override func draw(_ rect: CGRect) {
         guard let ctx = UIGraphicsGetCurrentContext() else { return }
 
+        // 1. Círculo de superficie puro
+        let circleRect = rect.insetBy(dx: 1.5, dy: 1.5)
+        let circlePath = UIBezierPath(ovalIn: circleRect)
+
+        let surfaceColor = isHighlighted ? Theme.Colors.surfacePressed : Theme.Colors.surface
+        ctx.setFillColor(surfaceColor.cgColor)
+        circlePath.fill()
+
+        ctx.setStrokeColor(Theme.Colors.border.cgColor)
+        ctx.setLineWidth(1.0)
+        circlePath.stroke()
+
         let center = CGPoint(x: rect.midX, y: rect.midY)
         let chevronColor = Theme.Colors.textPrimary
 
-        // Flecha triangular hacia abajo exacta a Stitch SVG (d="M7 10l5 5 5-5z")
+        // 2. Flecha triangular hacia abajo exacta a Stitch SVG (d="M7 10l5 5 5-5z")
         ctx.setFillColor(chevronColor.cgColor)
 
         let triangle = UIBezierPath()
