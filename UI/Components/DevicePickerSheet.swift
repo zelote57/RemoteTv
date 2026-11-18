@@ -44,7 +44,6 @@ class DevicePickerSheet: UIViewController, UITableViewDataSource, UITableViewDel
     private let containerView = UIView()
     private let grabberPill = UIView()
 
-    // Header Components
     private let titleLabel = UILabel()
     private let badgeLabel = UILabel()
     private let subtitleLabel = UILabel()
@@ -52,29 +51,24 @@ class DevicePickerSheet: UIViewController, UITableViewDataSource, UITableViewDel
     private let activitySpinner = UIActivityIndicatorView(style: .white)
     private let closeButton = UIButton(type: .custom)
 
-    // Content Views
     private let tableView = UITableView(frame: .zero, style: .plain)
     private let emptyStateScrollView = UIScrollView()
     private let emptyStateContainer = UIView()
 
-    // Empty State Hero
     private let emptyHeroCircle = EmptyStateHeroView()
     private let emptyTitleLabel = UILabel()
     private let emptyDescLabel = UILabel()
 
-    // Troubleshooting Diagnostic Card
     private let diagnosticCardView = UIView()
     private let diagnosticHeaderLabel = UILabel()
     private let tipWifiRow = TroubleshootingTipRow(tipType: .wifi)
     private let tipPermissionRow = TroubleshootingTipRow(tipType: .permission)
     private let tipPowerRow = TroubleshootingTipRow(tipType: .power)
 
-    // Bottom Action Buttons
     private let actionsContainer = UIView()
     private let scanAgainButton = PrimaryActionButton()
     private let manualIPButton = SecondaryActionButton()
 
-    // Bottom Sheet Constraints
     private var containerBottomConstraint: NSLayoutConstraint?
     private var containerHeightConstraint: NSLayoutConstraint?
     private var isDismissing: Bool = false
@@ -187,24 +181,20 @@ class DevicePickerSheet: UIViewController, UITableViewDataSource, UITableViewDel
     private func setupViews() {
         view.backgroundColor = .clear
 
-        // 1. Backdrop
         backdropView.translatesAutoresizingMaskIntoConstraints = false
         backdropView.backgroundColor = .clear
         view.addSubview(backdropView)
 
-        // 2. Bottom Sheet Container
         containerView.translatesAutoresizingMaskIntoConstraints = false
         containerView.layer.cornerRadius = 28.0
         containerView.layer.maskedCorners = [.layerMinXMinYCorner, .layerMaxXMinYCorner]
         containerView.clipsToBounds = true
         view.addSubview(containerView)
 
-        // 3. Grabber Pill
         grabberPill.translatesAutoresizingMaskIntoConstraints = false
         grabberPill.layer.cornerRadius = 2.5
         containerView.addSubview(grabberPill)
 
-        // 4. Header Labels & Controls
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
         titleLabel.font = UIFont.systemFont(ofSize: 19, weight: .bold)
         titleLabel.adjustsFontSizeToFitWidth = true
@@ -239,7 +229,6 @@ class DevicePickerSheet: UIViewController, UITableViewDataSource, UITableViewDel
         closeButton.addTarget(self, action: #selector(didTapClose), for: .touchUpInside)
         containerView.addSubview(closeButton)
 
-        // 5. TableView
         tableView.translatesAutoresizingMaskIntoConstraints = false
         tableView.backgroundColor = .clear
         tableView.separatorStyle = .none
@@ -249,7 +238,6 @@ class DevicePickerSheet: UIViewController, UITableViewDataSource, UITableViewDel
         tableView.register(DevicePickerTVCell.self, forCellReuseIdentifier: DevicePickerTVCell.reuseIdentifier)
         containerView.addSubview(tableView)
 
-        // 6. Empty State Scrollable Container
         emptyStateScrollView.translatesAutoresizingMaskIntoConstraints = false
         emptyStateScrollView.backgroundColor = .clear
         emptyStateScrollView.showsVerticalScrollIndicator = false
@@ -275,7 +263,6 @@ class DevicePickerSheet: UIViewController, UITableViewDataSource, UITableViewDel
         emptyDescLabel.text = L10n.Picker.emptyDescription
         emptyStateContainer.addSubview(emptyDescLabel)
 
-        // 6b. Loading View (shown while scanning)
         loadingView.translatesAutoresizingMaskIntoConstraints = false
         loadingView.backgroundColor = .clear
         loadingView.isHidden = true
@@ -292,7 +279,6 @@ class DevicePickerSheet: UIViewController, UITableViewDataSource, UITableViewDel
         loadingLabel.numberOfLines = 0
         loadingView.addSubview(loadingLabel)
 
-        // 7. Diagnostic Troubleshooting Card
         diagnosticCardView.translatesAutoresizingMaskIntoConstraints = false
         diagnosticCardView.layer.cornerRadius = 16.0
         diagnosticCardView.layer.borderWidth = 1.0
@@ -312,7 +298,6 @@ class DevicePickerSheet: UIViewController, UITableViewDataSource, UITableViewDel
         tipPowerRow.translatesAutoresizingMaskIntoConstraints = false
         diagnosticCardView.addSubview(tipPowerRow)
 
-        // 8. Bottom Action Buttons
         actionsContainer.translatesAutoresizingMaskIntoConstraints = false
         containerView.addSubview(actionsContainer)
 
@@ -324,7 +309,6 @@ class DevicePickerSheet: UIViewController, UITableViewDataSource, UITableViewDel
         manualIPButton.addTarget(self, action: #selector(didTapManualIP), for: .touchUpInside)
         actionsContainer.addSubview(manualIPButton)
 
-        // Activate Auto Layout Constraints
         let screenHeight = UIScreen.main.bounds.height
         let maxHeight = min(screenHeight * 0.86, 620.0)
 
@@ -332,25 +316,21 @@ class DevicePickerSheet: UIViewController, UITableViewDataSource, UITableViewDel
         containerHeightConstraint = containerView.heightAnchor.constraint(equalToConstant: maxHeight)
 
         NSLayoutConstraint.activate([
-            // Backdrop
             backdropView.topAnchor.constraint(equalTo: view.topAnchor),
             backdropView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             backdropView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             backdropView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
 
-            // Container Sheet
             containerView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             containerView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             containerBottomConstraint!,
             containerHeightConstraint!,
 
-            // Grabber
             grabberPill.topAnchor.constraint(equalTo: containerView.topAnchor, constant: 10),
             grabberPill.centerXAnchor.constraint(equalTo: containerView.centerXAnchor),
             grabberPill.widthAnchor.constraint(equalToConstant: 40),
             grabberPill.heightAnchor.constraint(equalToConstant: 5),
 
-            // Header Title & Badge
             titleLabel.topAnchor.constraint(equalTo: grabberPill.bottomAnchor, constant: 12),
             titleLabel.leadingAnchor.constraint(equalTo: containerView.leadingAnchor, constant: 20),
 
@@ -360,7 +340,6 @@ class DevicePickerSheet: UIViewController, UITableViewDataSource, UITableViewDel
             badgeLabel.heightAnchor.constraint(equalToConstant: 18),
             badgeLabel.widthAnchor.constraint(greaterThanOrEqualToConstant: 44),
 
-            // Header Status & Subtitle
             statusDotView.leadingAnchor.constraint(equalTo: containerView.leadingAnchor, constant: 20),
             statusDotView.centerYAnchor.constraint(equalTo: subtitleLabel.centerYAnchor),
             statusDotView.widthAnchor.constraint(equalToConstant: 7),
@@ -370,7 +349,6 @@ class DevicePickerSheet: UIViewController, UITableViewDataSource, UITableViewDel
             subtitleLabel.leadingAnchor.constraint(equalTo: statusDotView.trailingAnchor, constant: 6),
             subtitleLabel.trailingAnchor.constraint(lessThanOrEqualTo: closeButton.leadingAnchor, constant: -8),
 
-            // Header Close / Spinner
             closeButton.centerYAnchor.constraint(equalTo: titleLabel.centerYAnchor),
             closeButton.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -18),
             closeButton.widthAnchor.constraint(equalToConstant: 30),
@@ -379,13 +357,11 @@ class DevicePickerSheet: UIViewController, UITableViewDataSource, UITableViewDel
             activitySpinner.centerYAnchor.constraint(equalTo: closeButton.centerYAnchor),
             activitySpinner.centerXAnchor.constraint(equalTo: closeButton.centerXAnchor),
 
-            // TableView
             tableView.topAnchor.constraint(equalTo: subtitleLabel.bottomAnchor, constant: 14),
             tableView.leadingAnchor.constraint(equalTo: containerView.leadingAnchor, constant: 16),
             tableView.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -16),
             tableView.bottomAnchor.constraint(equalTo: actionsContainer.topAnchor, constant: -10),
 
-            // Empty State ScrollView
             emptyStateScrollView.topAnchor.constraint(equalTo: subtitleLabel.bottomAnchor, constant: 10),
             emptyStateScrollView.leadingAnchor.constraint(equalTo: containerView.leadingAnchor),
             emptyStateScrollView.trailingAnchor.constraint(equalTo: containerView.trailingAnchor),
@@ -397,7 +373,6 @@ class DevicePickerSheet: UIViewController, UITableViewDataSource, UITableViewDel
             emptyStateContainer.bottomAnchor.constraint(equalTo: emptyStateScrollView.bottomAnchor),
             emptyStateContainer.widthAnchor.constraint(equalTo: emptyStateScrollView.widthAnchor),
 
-            // Empty State Hero
             emptyHeroCircle.topAnchor.constraint(equalTo: emptyStateContainer.topAnchor, constant: 10),
             emptyHeroCircle.centerXAnchor.constraint(equalTo: emptyStateContainer.centerXAnchor),
             emptyHeroCircle.widthAnchor.constraint(equalToConstant: 76),
@@ -411,7 +386,6 @@ class DevicePickerSheet: UIViewController, UITableViewDataSource, UITableViewDel
             emptyDescLabel.leadingAnchor.constraint(equalTo: emptyStateContainer.leadingAnchor, constant: 28),
             emptyDescLabel.trailingAnchor.constraint(equalTo: emptyStateContainer.trailingAnchor, constant: -28),
 
-            // Diagnostic Card
             diagnosticCardView.topAnchor.constraint(equalTo: emptyDescLabel.bottomAnchor, constant: 14),
             diagnosticCardView.leadingAnchor.constraint(equalTo: emptyStateContainer.leadingAnchor, constant: 18),
             diagnosticCardView.trailingAnchor.constraint(equalTo: emptyStateContainer.trailingAnchor, constant: -18),
@@ -434,7 +408,6 @@ class DevicePickerSheet: UIViewController, UITableViewDataSource, UITableViewDel
             tipPowerRow.trailingAnchor.constraint(equalTo: diagnosticCardView.trailingAnchor, constant: -12),
             tipPowerRow.bottomAnchor.constraint(equalTo: diagnosticCardView.bottomAnchor, constant: -12),
 
-            // Loading View
             loadingView.topAnchor.constraint(equalTo: subtitleLabel.bottomAnchor, constant: 14),
             loadingView.leadingAnchor.constraint(equalTo: containerView.leadingAnchor),
             loadingView.trailingAnchor.constraint(equalTo: containerView.trailingAnchor),
@@ -447,7 +420,6 @@ class DevicePickerSheet: UIViewController, UITableViewDataSource, UITableViewDel
             loadingLabel.leadingAnchor.constraint(equalTo: loadingView.leadingAnchor, constant: 32),
             loadingLabel.trailingAnchor.constraint(equalTo: loadingView.trailingAnchor, constant: -32),
 
-            // Bottom Actions Container
             actionsContainer.leadingAnchor.constraint(equalTo: containerView.leadingAnchor, constant: 18),
             actionsContainer.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -18),
             actionsContainer.bottomAnchor.constraint(equalTo: containerView.safeAreaLayoutGuide.bottomAnchor, constant: -10),

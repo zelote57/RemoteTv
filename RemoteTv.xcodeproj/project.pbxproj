@@ -22,14 +22,11 @@
 		A00100142900000100000001 /* PairingService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B00100152900000100000001 /* PairingService.swift */; };
 		A00100152900000100000001 /* RemoteService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B00100162900000100000001 /* RemoteService.swift */; };
 		A00100162900000100000001 /* PowerButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = B00100172900000100000001 /* PowerButton.swift */; };
-		A00100172900000100000001 /* VolumeCapsuleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B00100182900000100000001 /* VolumeCapsuleView.swift */; };
-		A00100182900000100000001 /* AssistantButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = B00100192900000100000001 /* AssistantButton.swift */; };
 		A00100202900000100000001 /* AppConstants.swift in Sources */ = {isa = PBXBuildFile; fileRef = B00100202900000100000001 /* AppConstants.swift */; };
 		A00100212900000100000001 /* L10n.swift in Sources */ = {isa = PBXBuildFile; fileRef = B00100212900000100000001 /* L10n.swift */; };
 		A00100222900000100000001 /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = B00100222900000100000001 /* Theme.swift */; };
 		A00100232900000100000001 /* HapticManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = B00100232900000100000001 /* HapticManager.swift */; };
 		A00100242900000100000001 /* String+Localization.swift in Sources */ = {isa = PBXBuildFile; fileRef = B00100242900000100000001 /* String+Localization.swift */; };
-		A00100252900000100000001 /* UIView+Layout.swift in Sources */ = {isa = PBXBuildFile; fileRef = B00100252900000100000001 /* UIView+Layout.swift */; };
 		A00100312900000100000001 /* LocalizationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = B00100312900000100000001 /* LocalizationManager.swift */; };
 		A00100322900000100000001 /* SettingsSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = B00100322900000100000001 /* SettingsSheet.swift */; };
 		A00100332900000100000001 /* SharedVectorViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = B00100332900000100000001 /* SharedVectorViews.swift */; };
@@ -54,14 +51,11 @@
 		B00100152900000100000001 /* PairingService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PairingService.swift; sourceTree = "<group>"; };
 		B00100162900000100000001 /* RemoteService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteService.swift; sourceTree = "<group>"; };
 		B00100172900000100000001 /* PowerButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PowerButton.swift; sourceTree = "<group>"; };
-		B00100182900000100000001 /* VolumeCapsuleView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VolumeCapsuleView.swift; sourceTree = "<group>"; };
-		B00100192900000100000001 /* AssistantButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssistantButton.swift; sourceTree = "<group>"; };
 		B00100202900000100000001 /* AppConstants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppConstants.swift; sourceTree = "<group>"; };
 		B00100212900000100000001 /* L10n.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = L10n.swift; sourceTree = "<group>"; };
 		B00100222900000100000001 /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
 		B00100232900000100000001 /* HapticManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HapticManager.swift; sourceTree = "<group>"; };
 		B00100242900000100000001 /* String+Localization.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "String+Localization.swift"; sourceTree = "<group>"; };
-		B00100252900000100000001 /* UIView+Layout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIView+Layout.swift"; sourceTree = "<group>"; };
 		B00100312900000100000001 /* LocalizationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalizationManager.swift; sourceTree = "<group>"; };
 		B00100322900000100000001 /* SettingsSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsSheet.swift; sourceTree = "<group>"; };
 		B00100332900000100000001 /* SharedVectorViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedVectorViews.swift; sourceTree = "<group>"; };
@@ -121,8 +115,6 @@
 				B00100042900000100000001 /* DPadView.swift */,
 				B00100132900000100000001 /* DevicePickerSheet.swift */,
 				B00100172900000100000001 /* PowerButton.swift */,
-				B00100182900000100000001 /* VolumeCapsuleView.swift */,
-				B00100192900000100000001 /* AssistantButton.swift */,
 				B00100332900000100000001 /* SharedVectorViews.swift */,
 			);
 			path = Components;
@@ -190,7 +182,6 @@
 			isa = PBXGroup;
 			children = (
 				B00100242900000100000001 /* String+Localization.swift */,
-				B00100252900000100000001 /* UIView+Layout.swift */,
 			);
 			path = Extensions;
 			sourceTree = "<group>";
@@ -286,14 +277,11 @@
 				A00100142900000100000001 /* PairingService.swift in Sources */,
 				A00100152900000100000001 /* RemoteService.swift in Sources */,
 				A00100162900000100000001 /* PowerButton.swift in Sources */,
-				A00100172900000100000001 /* VolumeCapsuleView.swift in Sources */,
-				A00100182900000100000001 /* AssistantButton.swift in Sources */,
 				A00100202900000100000001 /* AppConstants.swift in Sources */,
 				A00100212900000100000001 /* L10n.swift in Sources */,
 				A00100222900000100000001 /* Theme.swift in Sources */,
 				A00100232900000100000001 /* HapticManager.swift in Sources */,
 				A00100242900000100000001 /* String+Localization.swift in Sources */,
-				A00100252900000100000001 /* UIView+Layout.swift in Sources */,
 				A00100312900000100000001 /* LocalizationManager.swift in Sources */,
 				A00100322900000100000001 /* SettingsSheet.swift in Sources */,
 				A00100332900000100000001 /* SharedVectorViews.swift in Sources */,

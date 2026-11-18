@@ -1,6 +1,5 @@
-// GoogleTVClient.swift — Orquestador principal de la sesión Google TV
-// Coordina Discovery → Pairing (puerto 6467) → Remote (puerto 6466)
-// Compatible con Swift 5.0 e iOS 12.0+
+// GoogleTVClient.swift — Main coordinator for Google TV session
+// Coordinates Discovery, Pairing (port 6467), and Remote control (port 6466)
 
 import Foundation
 

@@ -72,51 +72,13 @@ enum AppConstants {
         static let gitHubRepository = "https://github.com/zelote57/RemoteTv"
     }
 
-    // MARK: - KeyCodes Domain (Android TV / Google TV KeyEvent mapping)
-    enum KeyCodes: Int {
-        case dpadUp = 19
-        case dpadDown = 20
-        case dpadLeft = 21
-        case dpadRight = 22
-        case dpadCenter = 23
-        
-        case back = 4
-        case home = 3
-        case menu = 82
-        case search = 84
-        
-        case volumeUp = 24
-        case volumeDown = 25
-        case volumeMute = 164
-        
-        case power = 26
-        case mediaPlayPause = 85
-        case mediaNext = 87
-        case mediaPrevious = 88
-        
-        case channelUp = 166
-        case channelDown = 167
-        case tvInput = 178
-        case assistant = 219
-        
-        /// Direction short press code for Google TV v2 RemoteKeyInject
-        static let directionShort: Int = 3
-        static let directionStartLong: Int = 1
-        static let directionEndLong: Int = 2
-    }
-
     // MARK: - UI Metrics & Dimensions (Stitch Design & iPhone 6 Plus 414 x 736 pt target)
     enum UI {
         static let dpadDiameter: CGFloat = 280.0
-        static let dpadCenterDiameter: CGFloat = 120.0
         static let dpadCenterRatio: CGFloat = 120.0 / 280.0
         
         static let actionButtonSize: CGFloat = 70.0
         static let headerButtonSize: CGFloat = 44.0
-        static let powerButtonSize: CGFloat = 44.0
-        static let themeToggleButtonSize: CGFloat = 44.0
-        static let settingsButtonSize: CGFloat = 44.0
-        static let pickerChevronSize: CGFloat = 44.0
         
         static let headerHeight: CGFloat = 48.0
         static let headerHorizontalInset: CGFloat = 16.0
@@ -124,12 +86,10 @@ enum AppConstants {
         static let headerActionsSpacing: CGFloat = 8.0
         
         static let actionsRowSpacing: CGFloat = 36.0
-        static let actionsRowTopSpacing: CGFloat = 44.0
         static let centerVerticalOffset: CGFloat = 20.0
         static let standbyControlAlpha: CGFloat = 0.35
         
         static let statusDotDiameter: CGFloat = 8.0
-        static let borderWidthStandard: CGFloat = 1.0
         static let defaultAnimationDuration: TimeInterval = 0.25
     }
 }

@@ -20,36 +20,29 @@ class PairingViewController: UIViewController {
     private let containerView = UIView()
     private let grabberPill = UIView()
 
-    // Header
     private let tvBadgeView = PairingTVBadgeView()
     private let titleLabel = UILabel()
     private let tvNameBadge = UILabel()
     private let closeButton = UIButton(type: .custom)
 
-    // Instruction card
     private let instructionCard = UIView()
     private let instructionIconView = PairingInstructionIconView()
     private let instructionTitleLabel = UILabel()
     private let instructionDescLabel = UILabel()
 
-    // PIN Input
     private let pinInputCard = UIView()
     private let pinLabel = UILabel()
     private let pinField = UITextField()
     private let pinFieldUnderline = UIView()
 
-    // Error label (inline)
     private let errorLabel = UILabel()
 
-    // Actions
     private let pairButton = PairingPrimaryButton()
     private let cancelButton = PairingSecondaryButton()
 
-    // Loading spinner overlay
     private let loadingOverlay = UIView()
     private let loadingSpinner = UIActivityIndicatorView(style: .white)
 
-    // Sheet bottom constraint for slide animation
     private var containerBottomConstraint: NSLayoutConstraint?
     private var isDismissing: Bool = false
 
@@ -141,28 +134,23 @@ class PairingViewController: UIViewController {
     private func setupViews() {
         view.backgroundColor = .clear
 
-        // 1. Backdrop
         backdropView.translatesAutoresizingMaskIntoConstraints = false
         backdropView.backgroundColor = .clear
         view.addSubview(backdropView)
 
-        // 2. Bottom Sheet Container
         containerView.translatesAutoresizingMaskIntoConstraints = false
         containerView.layer.cornerRadius = 28.0
         containerView.layer.maskedCorners = [.layerMinXMinYCorner, .layerMaxXMinYCorner]
         containerView.clipsToBounds = true
         view.addSubview(containerView)
 
-        // 3. Grabber pill
         grabberPill.translatesAutoresizingMaskIntoConstraints = false
         grabberPill.layer.cornerRadius = 2.5
         containerView.addSubview(grabberPill)
 
-        // 4. TV Icon Badge (top center visual)
         tvBadgeView.translatesAutoresizingMaskIntoConstraints = false
         containerView.addSubview(tvBadgeView)
 
-        // 5. Title & TV Name badge
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
         titleLabel.text = L10n.Pairing.dialogTitle
         titleLabel.font = UIFont.systemFont(ofSize: 19, weight: .bold)
@@ -177,7 +165,6 @@ class PairingViewController: UIViewController {
         tvNameBadge.clipsToBounds = true
         containerView.addSubview(tvNameBadge)
 
-        // 6. Close button (top right)
         closeButton.translatesAutoresizingMaskIntoConstraints = false
         closeButton.setTitle("✕", for: .normal)
         closeButton.titleLabel?.font = UIFont.systemFont(ofSize: 13, weight: .bold)
@@ -185,7 +172,6 @@ class PairingViewController: UIViewController {
         closeButton.layer.borderWidth = 1.0
         containerView.addSubview(closeButton)
 
-        // 7. Instruction card
         instructionCard.translatesAutoresizingMaskIntoConstraints = false
         instructionCard.layer.cornerRadius = 14.0
         instructionCard.layer.borderWidth = 1.0
@@ -205,7 +191,6 @@ class PairingViewController: UIViewController {
         instructionDescLabel.numberOfLines = 0
         instructionCard.addSubview(instructionDescLabel)
 
-        // 8. PIN field card
         pinInputCard.translatesAutoresizingMaskIntoConstraints = false
         pinInputCard.layer.cornerRadius = 14.0
         pinInputCard.layer.borderWidth = 1.0
@@ -231,7 +216,6 @@ class PairingViewController: UIViewController {
         pinFieldUnderline.layer.cornerRadius = 1.0
         pinInputCard.addSubview(pinFieldUnderline)
 
-        // 9. Error label
         errorLabel.translatesAutoresizingMaskIntoConstraints = false
         errorLabel.font = UIFont.systemFont(ofSize: 12, weight: .medium)
         errorLabel.textColor = Theme.Colors.error
@@ -240,7 +224,6 @@ class PairingViewController: UIViewController {
         errorLabel.isHidden = true
         containerView.addSubview(errorLabel)
 
-        // 10. Action buttons
         pairButton.translatesAutoresizingMaskIntoConstraints = false
         pairButton.setTitle(L10n.Pairing.pairButton, for: .normal)
         containerView.addSubview(pairButton)
@@ -249,7 +232,6 @@ class PairingViewController: UIViewController {
         cancelButton.setTitle(L10n.Pairing.cancelButton, for: .normal)
         containerView.addSubview(cancelButton)
 
-        // 11. Loading overlay (shown while submitting PIN)
         loadingOverlay.translatesAutoresizingMaskIntoConstraints = false
         loadingOverlay.backgroundColor = UIColor.black.withAlphaComponent(0.35)
         loadingOverlay.isHidden = true
@@ -259,50 +241,41 @@ class PairingViewController: UIViewController {
         loadingSpinner.hidesWhenStopped = true
         loadingOverlay.addSubview(loadingSpinner)
 
-        // Auto Layout
         containerBottomConstraint = containerView.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: 700)
 
         NSLayoutConstraint.activate([
-            // Backdrop
             backdropView.topAnchor.constraint(equalTo: view.topAnchor),
             backdropView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             backdropView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             backdropView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
 
-            // Container
             containerView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             containerView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             containerBottomConstraint!,
 
-            // Grabber
             grabberPill.topAnchor.constraint(equalTo: containerView.topAnchor, constant: 10),
             grabberPill.centerXAnchor.constraint(equalTo: containerView.centerXAnchor),
             grabberPill.widthAnchor.constraint(equalToConstant: 40),
             grabberPill.heightAnchor.constraint(equalToConstant: 5),
 
-            // Close Button (top-right)
             closeButton.topAnchor.constraint(equalTo: grabberPill.bottomAnchor, constant: 10),
             closeButton.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -18),
             closeButton.widthAnchor.constraint(equalToConstant: 30),
             closeButton.heightAnchor.constraint(equalToConstant: 30),
 
-            // TV Icon Badge (centered below grabber)
             tvBadgeView.topAnchor.constraint(equalTo: grabberPill.bottomAnchor, constant: 14),
             tvBadgeView.centerXAnchor.constraint(equalTo: containerView.centerXAnchor),
             tvBadgeView.widthAnchor.constraint(equalToConstant: 56),
             tvBadgeView.heightAnchor.constraint(equalToConstant: 56),
 
-            // Title
             titleLabel.topAnchor.constraint(equalTo: tvBadgeView.bottomAnchor, constant: 12),
             titleLabel.leadingAnchor.constraint(equalTo: containerView.leadingAnchor, constant: 24),
             titleLabel.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -24),
 
-            // TV Name Badge
             tvNameBadge.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 6),
             tvNameBadge.centerXAnchor.constraint(equalTo: containerView.centerXAnchor),
             tvNameBadge.heightAnchor.constraint(equalToConstant: 20),
 
-            // Instruction Card
             instructionCard.topAnchor.constraint(equalTo: tvNameBadge.bottomAnchor, constant: 16),
             instructionCard.leadingAnchor.constraint(equalTo: containerView.leadingAnchor, constant: 18),
             instructionCard.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -18),
@@ -322,7 +295,6 @@ class PairingViewController: UIViewController {
             instructionDescLabel.topAnchor.constraint(equalTo: instructionTitleLabel.bottomAnchor, constant: 3),
             instructionDescLabel.bottomAnchor.constraint(equalTo: instructionCard.bottomAnchor, constant: -14),
 
-            // PIN Input Card
             pinInputCard.topAnchor.constraint(equalTo: instructionCard.bottomAnchor, constant: 14),
             pinInputCard.leadingAnchor.constraint(equalTo: containerView.leadingAnchor, constant: 18),
             pinInputCard.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -18),
@@ -341,25 +313,21 @@ class PairingViewController: UIViewController {
             pinFieldUnderline.heightAnchor.constraint(equalToConstant: 2),
             pinFieldUnderline.bottomAnchor.constraint(equalTo: pinInputCard.bottomAnchor, constant: -14),
 
-            // Error label
             errorLabel.topAnchor.constraint(equalTo: pinInputCard.bottomAnchor, constant: 8),
             errorLabel.leadingAnchor.constraint(equalTo: containerView.leadingAnchor, constant: 24),
             errorLabel.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -24),
 
-            // Pair Button
             pairButton.topAnchor.constraint(equalTo: errorLabel.bottomAnchor, constant: 14),
             pairButton.leadingAnchor.constraint(equalTo: containerView.leadingAnchor, constant: 18),
             pairButton.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -18),
             pairButton.heightAnchor.constraint(equalToConstant: 48),
 
-            // Cancel Button
             cancelButton.topAnchor.constraint(equalTo: pairButton.bottomAnchor, constant: 8),
             cancelButton.leadingAnchor.constraint(equalTo: containerView.leadingAnchor, constant: 18),
             cancelButton.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -18),
             cancelButton.heightAnchor.constraint(equalToConstant: 38),
             cancelButton.bottomAnchor.constraint(equalTo: containerView.safeAreaLayoutGuide.bottomAnchor, constant: -14),
 
-            // Loading overlay
             loadingOverlay.topAnchor.constraint(equalTo: containerView.topAnchor),
             loadingOverlay.leadingAnchor.constraint(equalTo: containerView.leadingAnchor),
             loadingOverlay.trailingAnchor.constraint(equalTo: containerView.trailingAnchor),

@@ -9,7 +9,6 @@ class RemoteButton: UIButton {
         case back
         case playPause
         case home
-        case none
     }
 
     private let iconType: IconType
@@ -26,24 +25,8 @@ class RemoteButton: UIButton {
         setup()
     }
 
-    // Convenience initializer for backwards compatibility
-    convenience init(title: String? = nil, style: Int = 0) {
-        if title == "←" {
-            self.init(iconType: .back)
-        } else if title == "⏯" {
-            self.init(iconType: .playPause)
-        } else if title == "⌂" {
-            self.init(iconType: .home)
-        } else {
-            self.init(iconType: .none)
-            if let title = title {
-                setTitle(title, for: .normal)
-            }
-        }
-    }
-
     required init?(coder: NSCoder) {
-        self.iconType = .none
+        self.iconType = .back
         super.init(coder: coder)
         setup()
     }
@@ -186,9 +169,6 @@ class RemoteButton: UIButton {
             homePath.addLine(to: leftEave)
             homePath.close()
             homePath.fill()
-
-        case .none:
-            break
         }
     }
 }

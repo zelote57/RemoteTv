@@ -18,23 +18,20 @@ struct HapticManager {
         }
         
         // Native iOS keyboard tactile click sound ID 1104
-        // Provides instant physical-like feedback without the excessive rattle of vibration 4095
         AudioServicesPlaySystemSound(1104)
     }
 
-    /// Triggers a celebratory feedback pattern upon successful device connection or pairing.
+    /// Triggers feedback pattern upon successful device connection or pairing.
     static func playSuccess() {
         if #available(iOS 10.0, *) {
             let generator = UINotificationFeedbackGenerator()
             generator.prepare()
             generator.notificationOccurred(.success)
         }
-        
-        // Single standard physical pulse for confirmation
         AudioServicesPlaySystemSound(SystemSoundID(kSystemSoundID_Vibrate))
     }
 
-    /// Triggers a subtle tactile selection feedback pattern for pickers and list item selection.
+    /// Triggers subtle selection feedback pattern for pickers and list items.
     static func playSelection() {
         if #available(iOS 10.0, *) {
             let generator = UISelectionFeedbackGenerator()
@@ -44,7 +41,7 @@ struct HapticManager {
         AudioServicesPlaySystemSound(1104)
     }
     
-    /// Triggers an alert feedback pattern when an operation fails.
+    /// Triggers alert feedback pattern when an operation fails.
     static func playError() {
         if #available(iOS 10.0, *) {
             let generator = UINotificationFeedbackGenerator()

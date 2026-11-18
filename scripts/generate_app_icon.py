@@ -1,23 +1,21 @@
 import os, json
 from PIL import Image, ImageDraw
 
-output_dir = r"c:\ANTIGRAVITY\RemoteTv\App\Assets.xcassets\AppIcon.appiconset"
+output_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "App", "Assets.xcassets", "AppIcon.appiconset"))
 os.makedirs(output_dir, exist_ok=True)
 
 def create_base_icon(size=1024):
     img = Image.new("RGBA", (size, size), (248, 249, 250, 255))
     draw = ImageDraw.Draw(img)
 
-    # 1. Borde redondeado sutil de la tarjeta interior
     margin = size * 0.08
-    # 2. Silueta minimalista del control remoto blanco/gris
     rw = size * 0.44
     rh = size * 0.82
     rx = (size - rw) / 2
     ry = (size - rh) / 2
     rcorner = size * 0.12
 
-    # Sombra del control
+    # Drop shadow
     for i in range(12):
         alpha = int(18 - i * 1.4)
         offset = i * 2.5
@@ -27,7 +25,7 @@ def create_base_icon(size=1024):
             fill=(20, 30, 50, alpha)
         )
 
-    # Cuerpo del control remoto (Blanco puro con borde)
+    # Remote body outline
     draw.rounded_rectangle(
         [rx, ry, rx + rw, ry + rh],
         radius=int(rcorner),
@@ -36,13 +34,13 @@ def create_base_icon(size=1024):
         width=int(size * 0.008)
     )
 
-    # Botón Power (punto rojo sutil arriba a la derecha)
+    # Power indicator dot
     pw_size = size * 0.04
     pw_x = rx + rw - pw_size - size * 0.06
     pw_y = ry + size * 0.06
     draw.ellipse([pw_x, pw_y, pw_x + pw_size, pw_y + pw_size], fill=(239, 68, 68, 255))
 
-    # Cruceta / D-Pad circular en el tercio superior
+    # D-Pad circular disc
     dpad_size = size * 0.28
     dpad_x = (size - dpad_size) / 2
     dpad_y = ry + size * 0.16
@@ -53,7 +51,7 @@ def create_base_icon(size=1024):
         width=int(size * 0.006)
     )
 
-    # Botón OK central del D-Pad
+    # Central OK button
     ok_size = dpad_size * 0.42
     ok_x = (size - ok_size) / 2
     ok_y = dpad_y + (dpad_size - ok_size) / 2
@@ -64,7 +62,7 @@ def create_base_icon(size=1024):
         width=int(size * 0.006)
     )
 
-    # Flechas del D-Pad (pequeños puntos elegantes en las 4 direcciones)
+    # Directional dots
     dot_r = size * 0.012
     cx = size / 2
     cy = dpad_y + dpad_size / 2
@@ -72,7 +70,7 @@ def create_base_icon(size=1024):
     for dx, dy in [(0, -dist), (0, dist), (-dist, 0), (dist, 0)]:
         draw.ellipse([cx + dx - dot_r, cy + dy - dot_r, cx + dx + dot_r, cy + dy + dot_r], fill=(120, 130, 145, 255))
 
-    # Botones inferiores (dos columnas suaves de píldoras)
+    # Bottom action pill buttons
     btn_w = size * 0.13
     btn_h = size * 0.05
     btn_y1 = ry + size * 0.52

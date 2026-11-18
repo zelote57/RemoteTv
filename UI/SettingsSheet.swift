@@ -7,28 +7,22 @@ import UIKit
 
 class SettingsSheet: UIViewController, UIGestureRecognizerDelegate {
 
-    // MARK: - Subviews & Layout Constraints
-
     private let backdropView = UIView()
     private let containerView = UIView()
     private let grabberPill = UIView()
 
-    // Header
     private let titleLabel = UILabel()
     private let closeButton = UIButton(type: .custom)
 
-    // Scrollable Content
     private let scrollView = UIScrollView()
     private let contentView = UIView()
 
-    // Language Section
     private let languageSectionHeader = UILabel()
     private let languageCard = UIView()
     private let systemLangRow = LanguageOptionRow(language: .system)
     private let spanishLangRow = LanguageOptionRow(language: .spanish)
     private let englishLangRow = LanguageOptionRow(language: .english)
 
-    // About Section
     private let aboutSectionHeader = UILabel()
     private let aboutCard = UIView()
     private let appIconView = SettingsTVBadgeView()
@@ -37,11 +31,9 @@ class SettingsSheet: UIViewController, UIGestureRecognizerDelegate {
     private let techStackLabel = UILabel()
     private let aboutDivider = UIView()
 
-    // Developer & GitHub
     private let developerRow = SettingsInfoRow()
     private let githubButton = SettingsGitHubRow()
 
-    // Sheet animation constraint
     private var containerBottomConstraint: NSLayoutConstraint?
     private var isDismissing: Bool = false
 
@@ -103,24 +95,20 @@ class SettingsSheet: UIViewController, UIGestureRecognizerDelegate {
     private func setupViews() {
         view.backgroundColor = .clear
 
-        // 1. Backdrop
         backdropView.translatesAutoresizingMaskIntoConstraints = false
         backdropView.backgroundColor = .clear
         view.addSubview(backdropView)
 
-        // 2. Bottom Sheet Container
         containerView.translatesAutoresizingMaskIntoConstraints = false
         containerView.layer.cornerRadius = 28.0
         containerView.layer.maskedCorners = [.layerMinXMinYCorner, .layerMaxXMinYCorner]
         containerView.clipsToBounds = true
         view.addSubview(containerView)
 
-        // 3. Grabber Pill
         grabberPill.translatesAutoresizingMaskIntoConstraints = false
         grabberPill.layer.cornerRadius = 2.5
         containerView.addSubview(grabberPill)
 
-        // 4. Header
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
         titleLabel.font = UIFont.systemFont(ofSize: 19, weight: .bold)
         containerView.addSubview(titleLabel)
@@ -133,7 +121,6 @@ class SettingsSheet: UIViewController, UIGestureRecognizerDelegate {
         closeButton.addTarget(self, action: #selector(didTapClose), for: .touchUpInside)
         containerView.addSubview(closeButton)
 
-        // 5. ScrollView
         scrollView.translatesAutoresizingMaskIntoConstraints = false
         scrollView.showsVerticalScrollIndicator = false
         containerView.addSubview(scrollView)
@@ -141,7 +128,6 @@ class SettingsSheet: UIViewController, UIGestureRecognizerDelegate {
         contentView.translatesAutoresizingMaskIntoConstraints = false
         scrollView.addSubview(contentView)
 
-        // 6. Language Section
         languageSectionHeader.translatesAutoresizingMaskIntoConstraints = false
         languageSectionHeader.font = UIFont.systemFont(ofSize: 11, weight: .bold)
         contentView.addSubview(languageSectionHeader)
@@ -163,7 +149,6 @@ class SettingsSheet: UIViewController, UIGestureRecognizerDelegate {
         englishLangRow.addTarget(self, action: #selector(didSelectEnglishLang), for: .touchUpInside)
         languageCard.addSubview(englishLangRow)
 
-        // 7. About Section
         aboutSectionHeader.translatesAutoresizingMaskIntoConstraints = false
         aboutSectionHeader.font = UIFont.systemFont(ofSize: 11, weight: .bold)
         contentView.addSubview(aboutSectionHeader)
@@ -201,32 +186,27 @@ class SettingsSheet: UIViewController, UIGestureRecognizerDelegate {
         githubButton.addTarget(self, action: #selector(didTapGitHub), for: .touchUpInside)
         aboutCard.addSubview(githubButton)
 
-        // Auto Layout
         let screenHeight = UIScreen.main.bounds.height
         let maxHeight = min(screenHeight * 0.86, 620.0)
 
         containerBottomConstraint = containerView.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: 650)
 
         NSLayoutConstraint.activate([
-            // Backdrop
             backdropView.topAnchor.constraint(equalTo: view.topAnchor),
             backdropView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             backdropView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             backdropView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
 
-            // Container Sheet
             containerView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             containerView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             containerBottomConstraint!,
             containerView.heightAnchor.constraint(equalToConstant: maxHeight),
 
-            // Grabber Pill
             grabberPill.topAnchor.constraint(equalTo: containerView.topAnchor, constant: 10),
             grabberPill.centerXAnchor.constraint(equalTo: containerView.centerXAnchor),
             grabberPill.widthAnchor.constraint(equalToConstant: 40),
             grabberPill.heightAnchor.constraint(equalToConstant: 5),
 
-            // Header Title & Close
             titleLabel.topAnchor.constraint(equalTo: grabberPill.bottomAnchor, constant: 14),
             titleLabel.leadingAnchor.constraint(equalTo: containerView.leadingAnchor, constant: 20),
 
@@ -235,7 +215,6 @@ class SettingsSheet: UIViewController, UIGestureRecognizerDelegate {
             closeButton.widthAnchor.constraint(equalToConstant: 30),
             closeButton.heightAnchor.constraint(equalToConstant: 30),
 
-            // ScrollView
             scrollView.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 14),
             scrollView.leadingAnchor.constraint(equalTo: containerView.leadingAnchor),
             scrollView.trailingAnchor.constraint(equalTo: containerView.trailingAnchor),
@@ -247,12 +226,10 @@ class SettingsSheet: UIViewController, UIGestureRecognizerDelegate {
             contentView.bottomAnchor.constraint(equalTo: scrollView.bottomAnchor),
             contentView.widthAnchor.constraint(equalTo: scrollView.widthAnchor),
 
-            // Language Section Header
             languageSectionHeader.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 4),
             languageSectionHeader.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
             languageSectionHeader.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
 
-            // Language Card
             languageCard.topAnchor.constraint(equalTo: languageSectionHeader.bottomAnchor, constant: 8),
             languageCard.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 18),
             languageCard.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -18),
@@ -273,12 +250,10 @@ class SettingsSheet: UIViewController, UIGestureRecognizerDelegate {
             englishLangRow.heightAnchor.constraint(equalToConstant: 46),
             englishLangRow.bottomAnchor.constraint(equalTo: languageCard.bottomAnchor),
 
-            // About Section Header
             aboutSectionHeader.topAnchor.constraint(equalTo: languageCard.bottomAnchor, constant: 20),
             aboutSectionHeader.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
             aboutSectionHeader.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
 
-            // About Card
             aboutCard.topAnchor.constraint(equalTo: aboutSectionHeader.bottomAnchor, constant: 8),
             aboutCard.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 18),
             aboutCard.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -18),

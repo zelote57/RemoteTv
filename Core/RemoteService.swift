@@ -1,9 +1,6 @@
-// RemoteService.swift — Google TV Remote Protocol v2 (puerto 6466)
-// Implementación completa del protocolo de control remoto Android TV Remote v2
-// Handshake: remote_configure (f1) → remote_set_active (f2) → remote_start (f40)
-// Keep-Alive: responde automáticamente a remote_ping_request (f8) con remote_ping_response (f9)
-// Inyección de teclas: remote_key_inject (f10) con dirección SHORT (3)
-// Compatible con iOS 12 puro (CFStream + TLS + Protobuf nativo)
+// RemoteService.swift — Android TV Remote Protocol v2 (Port 6466)
+// Handles session handshake, keep-alive ping/pong, and key injection
+// Compatible with iOS 12+ (CFStream + mTLS + Protobuf)
 
 import Foundation
 import Security
@@ -36,7 +33,7 @@ class RemoteService: NSObject, StreamDelegate {
     }
     private var handshakeState: HandshakeState = .idle
 
-    // MARK: - API Pública
+    // MARK: - Public API
 
     func connect(host: String) {
         if isReady && self.host == host {
@@ -62,8 +59,8 @@ class RemoteService: NSObject, StreamDelegate {
         }
 
         // remote_key_inject (field 10):
-        //   field 1 (key_code): int (enum)
-        //   field 2 (direction): 3 (SHORT)
+        // field 1 (key_code): int (enum)
+        // field 2 (direction): 3 (SHORT)
         var inner = Data()
         inner.append(protoVarint(field: 1, value: keyCode.rawValue))
         inner.append(protoVarint(field: 2, value: 3)) // RemoteDirection.SHORT = 3
@@ -90,7 +87,7 @@ class RemoteService: NSObject, StreamDelegate {
         pendingWriteData.removeAll()
     }
 
-    // MARK: - CFStream con mTLS
+    // MARK: - CFStream with mTLS
 
     private func openTLSStreams() {
         var readCF: Unmanaged<CFReadStream>?
@@ -180,7 +177,7 @@ class RemoteService: NSObject, StreamDelegate {
         }
     }
 
-    // MARK: - Lectura y Procesamiento de Mensajes
+    // MARK: - Message Processing
 
     private func readAvailableBytes() {
         let bufSize = 4096
@@ -198,7 +195,7 @@ class RemoteService: NSObject, StreamDelegate {
             var off = 0
             guard let msgLen = varintDecode(readBuffer, offset: &off) else { break }
             let total = off + Int(msgLen)
-            guard readBuffer.count >= total else { break } // Espera el paquete completo
+            guard readBuffer.count >= total else { break }
             let msgData = readBuffer.subdata(in: off..<total)
             readBuffer.removeSubrange(0..<total)
             handleTVMessage(msgData)
@@ -208,35 +205,35 @@ class RemoteService: NSObject, StreamDelegate {
     private func handleTVMessage(_ data: Data) {
         let fields = protoParseFields(data)
         let keys = fields.keys.sorted()
-        print("[Remote] ← TV envió mensaje (\(data.count) bytes, campos: \(keys))")
+        print("[Remote] ← TV message (\(data.count) bytes, fields: \(keys))")
 
         // 1. remote_configure (field 1)
         if fields[1] != nil {
-            print("[Remote] ← Recibido remote_configure — enviando respuesta de configuración")
+            print("[Remote] ← Received remote_configure — replying with configuration")
             sendConfigureReply()
             handshakeState = .receivedConfigure
         }
 
         // 2. remote_set_active (field 2)
         if fields[2] != nil {
-            print("[Remote] ← Recibido remote_set_active — enviando confirmación de activación")
+            print("[Remote] ← Received remote_set_active — replying with activation")
             sendSetActiveReply()
             markReady()
         }
 
         // 3. remote_start (field 40)
         if fields[40] != nil {
-            print("[Remote] ← Recibido remote_start — ¡Canal de control totalmente listo!")
+            print("[Remote] ← Received remote_start — session ready")
             markReady()
         }
 
         // 4. remote_set_volume_level (field 50)
         if fields[50] != nil {
-            print("[Remote] ← Recibido estado de volumen del TV")
+            print("[Remote] ← Received TV volume state")
             markReady()
         }
 
-        // 5. remote_ping_request (field 8) → Responder de inmediato con remote_ping_response (field 9)
+        // 5. remote_ping_request (field 8) -> Reply immediately with remote_ping_response (field 9)
         if let pingData = fields[8] {
             var val1 = 0
             let pingFields = protoParseFields(pingData)
@@ -252,27 +249,19 @@ class RemoteService: NSObject, StreamDelegate {
         guard !isReady else { return }
         isReady = true
         handshakeState = .active
-        print("[Remote] ✅ Canal de control activo y sincronizado")
+        print("[Remote] ✅ Control channel active and synchronized")
         DispatchQueue.main.async { self.delegate?.remoteServiceDidConnect() }
     }
 
-    // MARK: - Respuestas del Handshake
+    // MARK: - Handshake Replies
 
     private func sendConfigureReply() {
-        // device_info sub-message:
-        //   field 3 (unknown1): 1
-        //   field 4 (unknown2): "1"
-        //   field 5 (package_name): "atvremote"
-        //   field 6 (app_version): "1.0.0"
         var devInfo = Data()
         devInfo.append(protoVarint(field: 3, value: 1))
         devInfo.append(protoString(field: 4, value: "1"))
         devInfo.append(protoString(field: 5, value: "atvremote"))
         devInfo.append(protoString(field: 6, value: "1.0.0"))
 
-        // remote_configure:
-        //   field 1 (code1): 611 (características activas)
-        //   field 2 (device_info): sub-message
         var configMsg = Data()
         configMsg.append(protoVarint(field: 1, value: 611))
         configMsg.append(protoBytes(field: 2, value: devInfo))
@@ -281,12 +270,10 @@ class RemoteService: NSObject, StreamDelegate {
         outer.append(protoBytes(field: 1, value: configMsg)) // remote_configure = 1
 
         send(data: delimited(outer))
-        print("[Remote] → Enviado remote_configure reply (code1: 611)")
+        print("[Remote] → Sent remote_configure reply (code1: 611)")
     }
 
     private func sendSetActiveReply() {
-        // remote_set_active:
-        //   field 1 (active): 611
         var activeMsg = Data()
         activeMsg.append(protoVarint(field: 1, value: 611))
 
@@ -294,12 +281,10 @@ class RemoteService: NSObject, StreamDelegate {
         outer.append(protoBytes(field: 2, value: activeMsg)) // remote_set_active = 2
 
         send(data: delimited(outer))
-        print("[Remote] → Enviado remote_set_active reply (active: 611)")
+        print("[Remote] → Sent remote_set_active reply (active: 611)")
     }
 
     private func sendPingResponse(val1: Int) {
-        // remote_ping_response:
-        //   field 1 (val1): val1 del request
         var pingResp = Data()
         pingResp.append(protoVarint(field: 1, value: val1))
 
@@ -309,7 +294,7 @@ class RemoteService: NSObject, StreamDelegate {
         send(data: delimited(outer))
     }
 
-    // MARK: - Envío con Buffer
+    // MARK: - Buffered Sending
 
     private func send(data: Data) {
         pendingWriteData.append(data)

@@ -1,12 +1,11 @@
-// RemoteViewController.swift — Control Remoto Google TV
-// Diseño de alta fidelidad basado en Stitch (Modo Claro y Modo Oscuro)
-// 100% UIKit programático, compatible con Swift 5.0 e iOS 12.0 (iPhone 6 Plus)
+// RemoteViewController.swift — Main Google TV remote control interface
+// High-fidelity Stitch design supporting light and dark themes (iOS 12+)
 
 import UIKit
 
 class RemoteViewController: UIViewController, GoogleTVClientDelegate, DPadViewDelegate, DevicePickerDelegate {
 
-    // MARK: - Barra Superior (Header)
+    // MARK: - Header
     private let headerView = UIView()
     private let pickerContainer = UIControl()
     private let chevronButton = DevicePickerChevronButton()
@@ -20,16 +19,16 @@ class RemoteViewController: UIViewController, GoogleTVClientDelegate, DPadViewDe
     private let themeToggleButton = ThemeToggleButton()
     private let powerButton = PowerButton()
 
-    // MARK: - Navegación D-Pad Central
+    // MARK: - Central D-Pad
     private let dpadView = DPadView()
 
-    // MARK: - Fila de Acciones Inferiores (Atrás, Play/Pausa, Inicio)
+    // MARK: - Bottom Actions
     private let bottomControlsRow = UIStackView()
     private let backButton = RemoteButton(iconType: .back)
     private let playPauseButton = RemoteButton(iconType: .playPause)
     private let homeButton = RemoteButton(iconType: .home)
 
-    // MARK: - Dependencias de Red
+    // MARK: - Dependencies
     private let client = GoogleTVClient.shared
     private let discovery = GoogleTVDiscovery.shared
 
@@ -37,7 +36,7 @@ class RemoteViewController: UIViewController, GoogleTVClientDelegate, DPadViewDe
     /// Guards against stacking multiple PairingViewController modals.
     private var isPairingPresented: Bool = false
 
-    // MARK: - Ciclo de Vida
+    // MARK: - Lifecycle
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -63,7 +62,7 @@ class RemoteViewController: UIViewController, GoogleTVClientDelegate, DPadViewDe
         return Theme.isDark ? .lightContent : .default
     }
 
-    // MARK: - Notificación de Tema y Lenguaje
+    // MARK: - Theme & Language Observers
 
     private func setupThemeObserver() {
         NotificationCenter.default.addObserver(
@@ -90,14 +89,11 @@ class RemoteViewController: UIViewController, GoogleTVClientDelegate, DPadViewDe
         updateStatusUI(client.currentStatus)
     }
 
-    // MARK: - Layout Visual con Auto Layout
+    // MARK: - Layout
 
     private func setupLayout() {
         let guide = view.safeAreaLayoutGuide
 
-        // ══════════════════════════════════════════════════
-        // 1. Barra Superior (Header)
-        // ══════════════════════════════════════════════════
         headerView.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(headerView)
 
@@ -149,15 +145,9 @@ class RemoteViewController: UIViewController, GoogleTVClientDelegate, DPadViewDe
         headerActions.addArrangedSubview(powerButton)
         headerView.addSubview(headerActions)
 
-        // ══════════════════════════════════════════════════
-        // 2. D-Pad Central
-        // ══════════════════════════════════════════════════
         dpadView.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(dpadView)
 
-        // ══════════════════════════════════════════════════
-        // 3. Fila de Acciones Inferiores (Atrás, Play/Pausa, Inicio)
-        // ══════════════════════════════════════════════════
         bottomControlsRow.axis = .horizontal
         bottomControlsRow.spacing = AppConstants.UI.actionsRowSpacing
         bottomControlsRow.alignment = .center
@@ -173,13 +163,11 @@ class RemoteViewController: UIViewController, GoogleTVClientDelegate, DPadViewDe
         bottomControlsRow.addArrangedSubview(homeButton)
         view.addSubview(bottomControlsRow)
 
-        // Dimensiones estandarizadas
         let dpadSize = AppConstants.UI.dpadDiameter
         let actionBtnSize = AppConstants.UI.actionButtonSize
         let headerBtnSize = AppConstants.UI.headerButtonSize
 
         NSLayoutConstraint.activate([
-            // Header
             headerView.topAnchor.constraint(equalTo: guide.topAnchor, constant: AppConstants.UI.headerTopOffset),
             headerView.leadingAnchor.constraint(equalTo: guide.leadingAnchor, constant: AppConstants.UI.headerHorizontalInset),
             headerView.trailingAnchor.constraint(equalTo: guide.trailingAnchor, constant: -AppConstants.UI.headerHorizontalInset),
@@ -218,13 +206,11 @@ class RemoteViewController: UIViewController, GoogleTVClientDelegate, DPadViewDe
             powerButton.widthAnchor.constraint(equalToConstant: headerBtnSize),
             powerButton.heightAnchor.constraint(equalToConstant: headerBtnSize),
 
-            // D-Pad centrado en el medio de la pantalla
             dpadView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             dpadView.centerYAnchor.constraint(equalTo: view.centerYAnchor, constant: AppConstants.UI.centerVerticalOffset),
             dpadView.widthAnchor.constraint(equalToConstant: dpadSize),
             dpadView.heightAnchor.constraint(equalToConstant: dpadSize),
 
-            // Fila de acciones anclada armónicamente en la parte inferior
             bottomControlsRow.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             bottomControlsRow.leadingAnchor.constraint(greaterThanOrEqualTo: guide.leadingAnchor, constant: 28),
             bottomControlsRow.trailingAnchor.constraint(lessThanOrEqualTo: guide.trailingAnchor, constant: -28),
@@ -241,7 +227,7 @@ class RemoteViewController: UIViewController, GoogleTVClientDelegate, DPadViewDe
         ])
     }
 
-    // MARK: - Aplicación de Tema (Modo Claro / Modo Oscuro)
+    // MARK: - Theme Application
 
     private func applyTheme() {
         view.backgroundColor = Theme.Colors.background
@@ -261,7 +247,7 @@ class RemoteViewController: UIViewController, GoogleTVClientDelegate, DPadViewDe
         setNeedsStatusBarAppearanceUpdate()
     }
 
-    // MARK: - Acciones de Usuario
+    // MARK: - User Actions
 
     private func setupActions() {
         pickerContainer.addTarget(self, action: #selector(didTapDevicePicker), for: .touchUpInside)
@@ -301,14 +287,14 @@ class RemoteViewController: UIViewController, GoogleTVClientDelegate, DPadViewDe
     func dpadDidTapRight(_ dpad: DPadView) { client.sendKey(.dpadRight) }
     func dpadDidTapCenter(_ dpad: DPadView) { client.sendKey(.dpadCenter) }
 
-    // MARK: - Acciones de Botones
+    // MARK: - Button Actions
 
     @objc private func didTapPower() { client.sendKey(.power) }
     @objc private func didTapBack() { client.sendKey(.back) }
     @objc private func didTapPlayPause() { client.sendKey(.mediaPlayPause) }
     @objc private func didTapHome() { client.sendKey(.home) }
 
-    // MARK: - Selector de Dispositivos (Device Picker)
+    // MARK: - Device Picker
 
     @objc private func didTapDevicePicker() {
         HapticManager.playTactileClick()
@@ -341,7 +327,7 @@ class RemoteViewController: UIViewController, GoogleTVClientDelegate, DPadViewDe
         discovery.startDiscovery()
     }
 
-    // MARK: - Client Delegate & Estado Visual
+    // MARK: - GoogleTVClientDelegate & Status UI
 
     func clientDidChangeStatus(_ client: GoogleTVClient, status: ConnectionStatus) {
         updateStatusUI(status)
@@ -467,7 +453,7 @@ class RemoteViewController: UIViewController, GoogleTVClientDelegate, DPadViewDe
     }
 }
 
-// MARK: - Componente Vectorial: Botón de Sol / Brillo (ThemeToggle)
+// MARK: - ThemeToggleButton
 
 private class ThemeToggleButton: UIButton {
 
@@ -527,7 +513,7 @@ private class ThemeToggleButton: UIButton {
     override func draw(_ rect: CGRect) {
         guard let ctx = UIGraphicsGetCurrentContext() else { return }
 
-        // 1. Círculo de superficie puro
+        // 1. Circular surface and border
         let circleRect = rect.insetBy(dx: 1.5, dy: 1.5)
         let circlePath = UIBezierPath(ovalIn: circleRect)
 
@@ -542,7 +528,7 @@ private class ThemeToggleButton: UIButton {
         let center = CGPoint(x: rect.midX, y: rect.midY)
         let sunColor = Theme.Colors.sunYellow
 
-        // 2. Círculo Central del Sol
+        // 2. Central sun core
         let coreRadius: CGFloat = 4.8
         ctx.setFillColor(sunColor.cgColor)
         ctx.fillEllipse(in: CGRect(
@@ -552,7 +538,7 @@ private class ThemeToggleButton: UIButton {
             height: coreRadius * 2.0
         ))
 
-        // 3. Ocho Rayos Solares Concéntricos
+        // 3. Sun rays
         ctx.setStrokeColor(sunColor.cgColor)
         ctx.setLineWidth(2.0)
         ctx.setLineCap(.round)
@@ -578,7 +564,7 @@ private class ThemeToggleButton: UIButton {
     }
 }
 
-// MARK: - Componente Vectorial: Botón Selector de Dispositivo (Chevron)
+// MARK: - DevicePickerChevronButton
 
 private class DevicePickerChevronButton: UIButton {
 
@@ -622,7 +608,7 @@ private class DevicePickerChevronButton: UIButton {
     override func draw(_ rect: CGRect) {
         guard let ctx = UIGraphicsGetCurrentContext() else { return }
 
-        // 1. Círculo de superficie puro
+        // 1. Circular surface and border
         let circleRect = rect.insetBy(dx: 1.5, dy: 1.5)
         let circlePath = UIBezierPath(ovalIn: circleRect)
 
@@ -637,7 +623,7 @@ private class DevicePickerChevronButton: UIButton {
         let center = CGPoint(x: rect.midX, y: rect.midY)
         let chevronColor = Theme.Colors.textPrimary
 
-        // 2. Flecha triangular hacia abajo exacta a Stitch SVG (d="M7 10l5 5 5-5z")
+        // 2. Chevron arrow
         ctx.setFillColor(chevronColor.cgColor)
 
         let triangle = UIBezierPath()
@@ -653,7 +639,7 @@ private class DevicePickerChevronButton: UIButton {
     }
 }
 
-// MARK: - Componente Vectorial: Botón de Configuración (SettingsButton)
+// MARK: - SettingsButton
 
 private class SettingsButton: UIButton {
 
@@ -713,7 +699,7 @@ private class SettingsButton: UIButton {
     override func draw(_ rect: CGRect) {
         guard let ctx = UIGraphicsGetCurrentContext() else { return }
 
-        // 1. Círculo de superficie puro
+        // 1. Circular surface and border
         let circleRect = rect.insetBy(dx: 1.5, dy: 1.5)
         let circlePath = UIBezierPath(ovalIn: circleRect)
 
@@ -725,7 +711,7 @@ private class SettingsButton: UIButton {
         ctx.setLineWidth(1.0)
         circlePath.stroke()
 
-        // 2. Icono de Engranaje / Configuración Mecánico (6 dientes anchos, estilo iOS Settings)
+        // 2. Gear icon (6-tooth design)
         let center = CGPoint(x: rect.midX, y: rect.midY)
         let iconColor = Theme.Colors.textPrimary
         let toothCount = 6
@@ -733,9 +719,9 @@ private class SettingsButton: UIButton {
         let rootRadius: CGFloat = 6.8
         let holeRadius: CGFloat = 2.8
         
-        let tipHalfAngle: CGFloat = 12.0 * (.pi / 180.0)   // 12° a cada lado (cresta de 24°)
-        let baseHalfAngle: CGFloat = 16.5 * (.pi / 180.0)  // 16.5° a cada lado (base de 33°)
-        let stepAngle: CGFloat = (.pi * 2.0) / CGFloat(toothCount) // 60° entre dientes
+        let tipHalfAngle: CGFloat = 12.0 * (.pi / 180.0)
+        let baseHalfAngle: CGFloat = 16.5 * (.pi / 180.0)
+        let stepAngle: CGFloat = (.pi * 2.0) / CGFloat(toothCount)
 
         let gearPath = UIBezierPath()
 
@@ -757,20 +743,20 @@ private class SettingsButton: UIButton {
                 gearPath.move(to: startPt)
             }
 
-            // Cresta del diente (arco exterior plano y ancho)
+            // Tooth crest
             gearPath.addArc(withCenter: center, radius: outerRadius, startAngle: tipStart, endAngle: tipEnd, clockwise: true)
 
-            // Flanco descendente hacia la raíz
+            // Flank to root
             let valleyStartPt = CGPoint(
                 x: center.x + rootRadius * cos(baseEnd),
                 y: center.y + rootRadius * sin(baseEnd)
             )
             gearPath.addLine(to: valleyStartPt)
 
-            // Arco del valle entre dientes
+            // Valley between teeth
             gearPath.addArc(withCenter: center, radius: rootRadius, startAngle: baseEnd, endAngle: nextBaseStart, clockwise: true)
 
-            // Flanco ascendente hacia la cresta del siguiente diente
+            // Flank to next crest
             let nextTipPt = CGPoint(
                 x: center.x + outerRadius * cos(nextTipStart),
                 y: center.y + outerRadius * sin(nextTipStart)
@@ -779,7 +765,7 @@ private class SettingsButton: UIButton {
         }
         gearPath.close()
 
-        // Orificio central circular limpio
+        // Central circular hole
         let holeRect = CGRect(x: center.x - holeRadius, y: center.y - holeRadius, width: holeRadius * 2.0, height: holeRadius * 2.0)
         gearPath.append(UIBezierPath(ovalIn: holeRect))
         gearPath.usesEvenOddFillRule = true

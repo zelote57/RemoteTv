@@ -57,7 +57,7 @@ class GoogleTVDiscovery: NSObject, NetServiceBrowserDelegate, NetServiceDelegate
         newRemoteBrowser.searchForServices(ofType: AppConstants.Network.mdnsServiceTypeRemote, inDomain: AppConstants.Network.mdnsLocalDomain)
         newCastBrowser.searchForServices(ofType: AppConstants.Network.mdnsServiceTypeCast, inDomain: AppConstants.Network.mdnsLocalDomain)
 
-        // Sondeo rápido inmediato a la IP confirmada del televisor en la red local
+        // Fast direct probe to fallback IP on local network
         performDirectProbes()
     }
 
@@ -73,7 +73,6 @@ class GoogleTVDiscovery: NSObject, NetServiceBrowserDelegate, NetServiceDelegate
 
     // MARK: - NetServiceBrowserDelegate
     func netServiceBrowser(_ browser: NetServiceBrowser, didFind service: NetService, moreComing: Bool) {
-        print("[Discovery] mDNS detectó: \(service.name)")
         service.delegate = self
         resolvingServices.append(service)
         service.resolve(withTimeout: 4.0)
@@ -113,7 +112,7 @@ class GoogleTVDiscovery: NSObject, NetServiceBrowserDelegate, NetServiceDelegate
     }
 
     func netService(_ sender: NetService, didNotResolve errorDict: [String: NSNumber]) {
-        print("[Discovery] mDNS no pudo resolver servicio: \(sender.name)")
+        print("[Discovery] mDNS failed to resolve service: \(sender.name)")
     }
 
     func netServiceBrowser(_ browser: NetServiceBrowser, didNotSearch errorDict: [String: NSNumber]) {
@@ -129,15 +128,15 @@ class GoogleTVDiscovery: NSObject, NetServiceBrowserDelegate, NetServiceDelegate
     private func addDiscoveredDevice(_ tv: DiscoveredTV) {
         DispatchQueue.main.async {
             if !self.devices.contains(where: { $0.host == tv.host }) {
-                print("[Discovery] + TV Agregada a la lista: \(tv.name) (\(tv.host))")
+                print("[Discovery] TV added: \(tv.name) (\(tv.host))")
                 self.devices.append(tv)
             }
         }
     }
 
-    // Sondeo directo HTTP al puerto Cast/Eureka (8008) para identificar el nombre de inmediato
+    // Direct HTTP probe to Cast/Eureka port (8008) to query device name
     private func performDirectProbes() {
-        let candidates = [AppConstants.Network.targetDeviceFallbackIP] // IP confirmada en esta red
+        let candidates = [AppConstants.Network.targetDeviceFallbackIP]
         
         for ip in candidates {
             guard let url = URL(string: "http://\(ip):\(AppConstants.Network.castProbePort)/setup/eureka_info") else { continue }

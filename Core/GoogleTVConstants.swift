@@ -1,8 +1,8 @@
 import Foundation
 
 struct GoogleTVPorts {
-    static let pairing: UInt16 = 6467 // Puerto TLS para emparejamiento / PIN (Polo v2)
-    static let remote: UInt16  = 6466 // Puerto TLS para control remoto (KeyEvents)
+    static let pairing: UInt16 = 6467 // TLS port for pairing / PIN (Polo v2)
+    static let remote: UInt16  = 6466 // TLS port for remote control (KeyEvents)
 }
 
 enum AndroidKeyCode: Int {
@@ -29,15 +29,15 @@ enum AndroidKeyCode: Int {
     case channelUp = 166
     case channelDown = 167
     case tvInput = 178
-    case assistant = 219 // KEYCODE_ASSIST para invocar Google Assistant en la pantalla del TV
+    case assistant = 219 // KEYCODE_ASSIST to invoke Google Assistant on the TV screen
 }
 
 enum ConnectionStatus: Equatable {
     case disconnected
     case searching
-    case discovered(String)      // TV detectada en red, pendiente de acción explícita del usuario
-    case connecting(String)      // Iniciando handshake TLS hacia el socket
-    case pairingRequired(String) // TV solicita código PIN en pantalla
-    case connected(String)       // Canal de control activo, enviando KeyEvents
+    case discovered(String)      // TV discovered, awaiting user action
+    case connecting(String)      // Establishing TLS connection
+    case pairingRequired(String) // TV displays PIN code
+    case connected(String)       // Control session active
     case error(String)
 }
