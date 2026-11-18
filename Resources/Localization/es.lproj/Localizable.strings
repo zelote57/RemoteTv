@@ -66,3 +66,18 @@
 "common.cancel" = "Cancelar";
 "common.error_title" = "Error de Conexión";
 "common.retry" = "Reintentar";
+
+// MARK: - Settings & About
+"settings.title" = "Configuración";
+"settings.language_header" = "IDIOMA";
+"settings.language_system" = "Automático (Sistema)";
+"settings.language_es" = "Español";
+"settings.language_en" = "English";
+"settings.about_header" = "ACERCA DE";
+"settings.app_name" = "RemoteTv";
+"settings.version_format" = "Versión %@ (%@)";
+"settings.developer_title" = "Desarrollador";
+"settings.developer_name" = "Gus Zelote (@zelote57)";
+"settings.github_repo_title" = "Repositorio en GitHub";
+"settings.github_repo_subtitle" = "github.com/zelote57/RemoteTv";
+"settings.tech_stack" = "iOS 12.0+ • Pure UIKit • Swift 5";

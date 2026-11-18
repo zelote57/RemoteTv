@@ -567,8 +567,6 @@ private class PairingTVBadgeView: UIView {
     override init(frame: CGRect) {
         super.init(frame: frame)
         backgroundColor = .clear
-        layer.cornerRadius = 16.0
-        layer.borderWidth = 1.0
     }
 
     required init?(coder: NSCoder) {
@@ -576,10 +574,7 @@ private class PairingTVBadgeView: UIView {
     }
 
     func applyTheme() {
-        backgroundColor = Theme.isDark
-            ? UIColor(red: 59/255, green: 130/255, blue: 246/255, alpha: 0.15)
-            : UIColor(red: 219/255, green: 234/255, blue: 254/255, alpha: 0.8)
-        layer.borderColor = Theme.Colors.badgeWifiText.withAlphaComponent(0.3).cgColor
+        backgroundColor = .clear
         setNeedsDisplay()
     }
 
@@ -631,8 +626,6 @@ private class PairingInstructionIconView: UIView {
     override init(frame: CGRect) {
         super.init(frame: frame)
         backgroundColor = .clear
-        layer.cornerRadius = 10.0
-        layer.borderWidth = 1.0
     }
 
     required init?(coder: NSCoder) {
@@ -640,10 +633,7 @@ private class PairingInstructionIconView: UIView {
     }
 
     func applyTheme() {
-        backgroundColor = Theme.isDark
-            ? UIColor(red: 16/255, green: 185/255, blue: 129/255, alpha: 0.15)
-            : UIColor(red: 220/255, green: 252/255, blue: 231/255, alpha: 0.8)
-        layer.borderColor = Theme.Colors.connected.withAlphaComponent(0.3).cgColor
+        backgroundColor = .clear
         setNeedsDisplay()
     }
 

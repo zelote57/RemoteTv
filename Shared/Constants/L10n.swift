@@ -232,4 +232,59 @@ enum L10n {
             return "common.retry".localized
         }
     }
+
+    // MARK: - Settings & About
+    enum Settings {
+        static var title: String {
+            return "settings.title".localized
+        }
+        
+        static var languageHeader: String {
+            return "settings.language_header".localized
+        }
+        
+        static var languageSystem: String {
+            return "settings.language_system".localized
+        }
+        
+        static var languageEs: String {
+            return "settings.language_es".localized
+        }
+        
+        static var languageEn: String {
+            return "settings.language_en".localized
+        }
+        
+        static var aboutHeader: String {
+            return "settings.about_header".localized
+        }
+        
+        static var appName: String {
+            return "settings.app_name".localized
+        }
+        
+        static func version(short: String, build: String) -> String {
+            return "settings.version_format".localizedFormat(short, build)
+        }
+        
+        static var developerTitle: String {
+            return "settings.developer_title".localized
+        }
+        
+        static var developerName: String {
+            return "settings.developer_name".localized
+        }
+        
+        static var githubRepoTitle: String {
+            return "settings.github_repo_title".localized
+        }
+        
+        static var githubRepoSubtitle: String {
+            return "settings.github_repo_subtitle".localized
+        }
+        
+        static var techStack: String {
+            return "settings.tech_stack".localized
+        }
+    }
 }

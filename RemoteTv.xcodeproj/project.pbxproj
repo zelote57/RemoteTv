@@ -30,6 +30,8 @@
 		A00100232900000100000001 /* HapticManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = B00100232900000100000001 /* HapticManager.swift */; };
 		A00100242900000100000001 /* String+Localization.swift in Sources */ = {isa = PBXBuildFile; fileRef = B00100242900000100000001 /* String+Localization.swift */; };
 		A00100252900000100000001 /* UIView+Layout.swift in Sources */ = {isa = PBXBuildFile; fileRef = B00100252900000100000001 /* UIView+Layout.swift */; };
+		A00100312900000100000001 /* LocalizationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = B00100312900000100000001 /* LocalizationManager.swift */; };
+		A00100322900000100000001 /* SettingsSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = B00100322900000100000001 /* SettingsSheet.swift */; };
 		A00100262900000100000001 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = B00100262900000100000001 /* Localizable.strings */; };
 /* End PBXBuildFile section */
 
@@ -59,6 +61,8 @@
 		B00100232900000100000001 /* HapticManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HapticManager.swift; sourceTree = "<group>"; };
 		B00100242900000100000001 /* String+Localization.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "String+Localization.swift"; sourceTree = "<group>"; };
 		B00100252900000100000001 /* UIView+Layout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIView+Layout.swift"; sourceTree = "<group>"; };
+		B00100312900000100000001 /* LocalizationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalizationManager.swift; sourceTree = "<group>"; };
+		B00100322900000100000001 /* SettingsSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsSheet.swift; sourceTree = "<group>"; };
 		B00100272900000100000001 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
 		B00100282900000100000001 /* es */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = es; path = es.lproj/Localizable.strings; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -102,6 +106,7 @@
 			children = (
 				B00100072900000100000001 /* RemoteViewController.swift */,
 				B00100292900000100000001 /* PairingViewController.swift */,
+				B00100322900000100000001 /* SettingsSheet.swift */,
 				E00100062900000100000001 /* Components */,
 			);
 			path = UI;
@@ -173,6 +178,7 @@
 			children = (
 				B00100222900000100000001 /* Theme.swift */,
 				B00100232900000100000001 /* HapticManager.swift */,
+				B00100312900000100000001 /* LocalizationManager.swift */,
 			);
 			path = DesignSystem;
 			sourceTree = "<group>";
@@ -285,6 +291,8 @@
 				A00100232900000100000001 /* HapticManager.swift in Sources */,
 				A00100242900000100000001 /* String+Localization.swift in Sources */,
 				A00100252900000100000001 /* UIView+Layout.swift in Sources */,
+				A00100312900000100000001 /* LocalizationManager.swift in Sources */,
+				A00100322900000100000001 /* SettingsSheet.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

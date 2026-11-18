@@ -16,6 +16,7 @@ class RemoteViewController: UIViewController, GoogleTVClientDelegate, DPadViewDe
     private let statusSubtitleLabel = UILabel()
     
     private let headerActions = UIStackView()
+    private let settingsButton = SettingsButton()
     private let themeToggleButton = ThemeToggleButton()
     private let powerButton = PowerButton()
 
@@ -61,7 +62,7 @@ class RemoteViewController: UIViewController, GoogleTVClientDelegate, DPadViewDe
         return Theme.isDark ? .lightContent : .default
     }
 
-    // MARK: - Notificación de Tema
+    // MARK: - Notificación de Tema y Lenguaje
 
     private func setupThemeObserver() {
         NotificationCenter.default.addObserver(
@@ -70,10 +71,21 @@ class RemoteViewController: UIViewController, GoogleTVClientDelegate, DPadViewDe
             name: Theme.themeDidChangeNotification,
             object: nil
         )
+
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleLanguageChanged),
+            name: LocalizationManager.languageDidChangeNotification,
+            object: nil
+        )
     }
 
     @objc private func handleThemeChanged() {
         applyTheme()
+        updateStatusUI(client.currentStatus)
+    }
+
+    @objc private func handleLanguageChanged() {
         updateStatusUI(client.currentStatus)
     }
 
@@ -116,13 +128,15 @@ class RemoteViewController: UIViewController, GoogleTVClientDelegate, DPadViewDe
         pickerContainer.addSubview(statusRow)
 
         headerActions.axis = .horizontal
-        headerActions.spacing = 12
+        headerActions.spacing = 10
         headerActions.alignment = .center
         headerActions.translatesAutoresizingMaskIntoConstraints = false
         
+        settingsButton.translatesAutoresizingMaskIntoConstraints = false
         themeToggleButton.translatesAutoresizingMaskIntoConstraints = false
         powerButton.translatesAutoresizingMaskIntoConstraints = false
         
+        headerActions.addArrangedSubview(settingsButton)
         headerActions.addArrangedSubview(themeToggleButton)
         headerActions.addArrangedSubview(powerButton)
         headerView.addSubview(headerActions)
@@ -186,6 +200,9 @@ class RemoteViewController: UIViewController, GoogleTVClientDelegate, DPadViewDe
             headerActions.trailingAnchor.constraint(equalTo: headerView.trailingAnchor),
             headerActions.centerYAnchor.constraint(equalTo: headerView.centerYAnchor),
 
+            settingsButton.widthAnchor.constraint(equalToConstant: headerBtnSize),
+            settingsButton.heightAnchor.constraint(equalToConstant: headerBtnSize),
+
             themeToggleButton.widthAnchor.constraint(equalToConstant: headerBtnSize),
             themeToggleButton.heightAnchor.constraint(equalToConstant: headerBtnSize),
 
@@ -223,6 +240,7 @@ class RemoteViewController: UIViewController, GoogleTVClientDelegate, DPadViewDe
         tvNameLabel.textColor = Theme.Colors.textPrimary
         
         chevronButton.applyTheme()
+        settingsButton.applyTheme()
         themeToggleButton.applyTheme()
         powerButton.applyTheme()
         dpadView.applyTheme()
@@ -238,12 +256,21 @@ class RemoteViewController: UIViewController, GoogleTVClientDelegate, DPadViewDe
 
     private func setupActions() {
         pickerContainer.addTarget(self, action: #selector(didTapDevicePicker), for: .touchUpInside)
+        settingsButton.addTarget(self, action: #selector(didTapSettings), for: .touchUpInside)
         themeToggleButton.addTarget(self, action: #selector(didTapThemeToggle), for: .touchUpInside)
         powerButton.addTarget(self, action: #selector(didTapPower), for: .touchUpInside)
 
         backButton.addTarget(self, action: #selector(didTapBack), for: .touchUpInside)
         playPauseButton.addTarget(self, action: #selector(didTapPlayPause), for: .touchUpInside)
         homeButton.addTarget(self, action: #selector(didTapHome), for: .touchUpInside)
+    }
+
+    @objc private func didTapSettings() {
+        HapticManager.playTactileClick()
+        let sheet = SettingsSheet()
+        sheet.modalPresentationStyle = .overCurrentContext
+        sheet.modalTransitionStyle = .crossDissolve
+        present(sheet, animated: true)
     }
 
     @objc private func didTapThemeToggle() {
@@ -613,5 +640,119 @@ private class DevicePickerChevronButton: UIButton {
         triangle.addLine(to: CGPoint(x: center.x, y: bottomY))
         triangle.close()
         triangle.fill()
+    }
+}
+
+// MARK: - Componente Vectorial: Botón de Configuración (SettingsButton)
+
+private class SettingsButton: UIButton {
+
+    override var isHighlighted: Bool {
+        didSet {
+            setNeedsDisplay()
+        }
+    }
+
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        setup()
+    }
+
+    required init?(coder: NSCoder) {
+        super.init(coder: coder)
+        setup()
+    }
+
+    private func setup() {
+        backgroundColor = .clear
+        clipsToBounds = false
+        contentMode = .redraw
+        
+        applyTheme()
+        
+        addTarget(self, action: #selector(handleTouchDown), for: [.touchDown, .touchDragEnter])
+        addTarget(self, action: #selector(handleTouchUp), for: [.touchUpInside, .touchUpOutside, .touchCancel])
+    }
+
+    func applyTheme() {
+        Theme.Shadows.applyButtonShadow(to: layer)
+        setNeedsDisplay()
+    }
+
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        guard bounds.width > 0 else { return }
+        let circleRect = bounds.insetBy(dx: 1.5, dy: 1.5)
+        layer.shadowPath = UIBezierPath(ovalIn: circleRect).cgPath
+        Theme.Shadows.applyButtonShadow(to: layer)
+    }
+
+    @objc private func handleTouchDown() {
+        HapticManager.playTactileClick()
+        UIView.animate(withDuration: 0.10, delay: 0, options: [.curveEaseOut], animations: {
+            self.transform = CGAffineTransform(scaleX: 0.94, y: 0.94)
+        })
+    }
+
+    @objc private func handleTouchUp() {
+        UIView.animate(withDuration: 0.22, delay: 0, usingSpringWithDamping: 0.6, initialSpringVelocity: 0.8, options: [], animations: {
+            self.transform = .identity
+        })
+    }
+
+    override func draw(_ rect: CGRect) {
+        guard let ctx = UIGraphicsGetCurrentContext() else { return }
+
+        // 1. Círculo de superficie puro
+        let circleRect = rect.insetBy(dx: 1.5, dy: 1.5)
+        let circlePath = UIBezierPath(ovalIn: circleRect)
+
+        let surfaceColor = isHighlighted ? Theme.Colors.surfacePressed : Theme.Colors.surface
+        ctx.setFillColor(surfaceColor.cgColor)
+        circlePath.fill()
+
+        ctx.setStrokeColor(Theme.Colors.border.cgColor)
+        ctx.setLineWidth(1.0)
+        circlePath.stroke()
+
+        let center = CGPoint(x: rect.midX, y: rect.midY)
+        let iconColor = Theme.Colors.textPrimary
+
+        // 2. Icono de Engranaje / Configuración Vectorial
+        ctx.setStrokeColor(iconColor.cgColor)
+        ctx.setFillColor(iconColor.cgColor)
+
+        let innerRadius: CGFloat = 3.2
+        let gearRadius: CGFloat = 6.8
+        let toothLength: CGFloat = 2.2
+
+        let gearBody = UIBezierPath(arcCenter: center, radius: gearRadius, startAngle: 0, endAngle: .pi * 2, clockwise: true)
+        gearBody.lineWidth = 2.0
+        gearBody.stroke()
+
+        ctx.setLineWidth(2.2)
+        ctx.setLineCap(.round)
+
+        for i in 0..<6 {
+            let angle = CGFloat(i) * CGFloat.pi / 3.0
+            let cosA = cos(angle)
+            let sinA = sin(angle)
+
+            let pStart = CGPoint(x: center.x + gearRadius * cosA, y: center.y + gearRadius * sinA)
+            let pEnd = CGPoint(x: center.x + (gearRadius + toothLength) * cosA, y: center.y + (gearRadius + toothLength) * sinA)
+
+            let tooth = UIBezierPath()
+            tooth.move(to: pStart)
+            tooth.addLine(to: pEnd)
+            tooth.lineWidth = 2.2
+            tooth.lineCapStyle = .round
+            tooth.stroke()
+        }
+
+        ctx.setFillColor(surfaceColor.cgColor)
+        ctx.fillEllipse(in: CGRect(x: center.x - innerRadius, y: center.y - innerRadius, width: innerRadius * 2, height: innerRadius * 2))
+        ctx.setStrokeColor(iconColor.cgColor)
+        ctx.setLineWidth(1.2)
+        ctx.strokeEllipse(in: CGRect(x: center.x - innerRadius, y: center.y - innerRadius, width: innerRadius * 2, height: innerRadius * 2))
     }
 }

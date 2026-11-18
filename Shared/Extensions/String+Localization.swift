@@ -1,30 +1,25 @@
-// String+Localization.swift — Type-safe localization extension for RemoteTv
+// String+Localization.swift — Type-safe dynamic localization extension for RemoteTv
 // Fully compliant with Swift 5.0 and iOS 12.0+
 
 import Foundation
 
 extension String {
     
-    /// Returns the localized string for this key using standard main bundle.
+    /// Returns the localized string for this key using active LocalizationManager bundle.
     var localized: String {
-        return NSLocalizedString(self, comment: "")
+        return LocalizationManager.shared.localizedString(forKey: self)
     }
     
     /// Returns the localized string for this key with custom table or bundle parameters.
-    /// - Parameters:
-    ///   - tableName: The name of the strings table to search, defaults to "Localizable".
-    ///   - bundle: The bundle containing the table, defaults to Bundle.main.
-    ///   - comment: Developer comment for context, defaults to empty.
-    /// - Returns: Localized string representation.
-    func localized(tableName: String? = nil, bundle: Bundle = .main, comment: String = "") -> String {
-        return NSLocalizedString(self, tableName: tableName, bundle: bundle, value: self, comment: comment)
+    func localized(tableName: String? = nil, bundle: Bundle? = nil, comment: String = "") -> String {
+        if let bundle = bundle {
+            return NSLocalizedString(self, tableName: tableName, bundle: bundle, value: self, comment: comment)
+        }
+        return LocalizationManager.shared.localizedString(forKey: self)
     }
     
     /// Returns the formatted localized string by applying arguments to the localized key format.
-    /// - Parameter arguments: Format arguments matching the format specifiers in the string.
-    /// - Returns: Formatted localized string.
     func localizedFormat(_ arguments: CVarArg...) -> String {
-        let format = NSLocalizedString(self, comment: "")
-        return String(format: format, locale: Locale.current, arguments: arguments)
+        return LocalizationManager.shared.localizedFormat(forKey: self, arguments: arguments)
     }
 }

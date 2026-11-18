@@ -135,6 +135,13 @@ class DevicePickerSheet: UIViewController, UITableViewDataSource, UITableViewDel
 
         NotificationCenter.default.addObserver(
             self,
+            selector: #selector(handleLanguageChanged),
+            name: LocalizationManager.languageDidChangeNotification,
+            object: nil
+        )
+
+        NotificationCenter.default.addObserver(
+            self,
             selector: #selector(handleDiscoveryUpdated(_:)),
             name: NSNotification.Name("GoogleTVDiscoveryDidUpdateDevicesNotification"),
             object: nil
@@ -142,6 +149,12 @@ class DevicePickerSheet: UIViewController, UITableViewDataSource, UITableViewDel
     }
 
     @objc private func handleThemeChanged() {
+        applyTheme()
+    }
+
+    @objc private func handleLanguageChanged() {
+        updateViewState()
+        updateHeaderStatus()
         applyTheme()
     }
 
