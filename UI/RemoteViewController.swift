@@ -282,7 +282,11 @@ class RemoteViewController: UIViewController, GoogleTVClientDelegate, DPadViewDe
         sheet.modalTransitionStyle = .crossDissolve
         sheet.delegate = self
         sheet.devices = discovery.devices
-        sheet.currentConnectedHost = client.currentHost
+        if case .connected = client.currentStatus {
+            sheet.currentConnectedHost = client.currentHost
+        } else {
+            sheet.currentConnectedHost = nil
+        }
         sheet.isScanning = true
 
         discovery.startDiscovery()
@@ -367,6 +371,32 @@ class RemoteViewController: UIViewController, GoogleTVClientDelegate, DPadViewDe
             statusSubtitleLabel.textColor = Theme.Colors.error
             statusDot.layer.shadowOpacity = 0
         }
+
+        let isConnected: Bool
+        if case .connected = status {
+            isConnected = true
+        } else {
+            isConnected = false
+        }
+        updateRemoteControlsEnabledState(isConnected)
+    }
+
+    private func updateRemoteControlsEnabledState(_ isConnected: Bool, animated: Bool = true) {
+        let targetAlpha: CGFloat = isConnected ? 1.0 : 0.35
+        let duration: TimeInterval = animated ? 0.25 : 0.0
+
+        UIView.animate(withDuration: duration) { [weak self] in
+            guard let self = self else { return }
+            self.powerButton.alpha = targetAlpha
+            self.dpadView.alpha = targetAlpha
+            self.bottomControlsRow.alpha = targetAlpha
+        }
+
+        powerButton.isUserInteractionEnabled = isConnected
+        dpadView.isUserInteractionEnabled = isConnected
+        backButton.isUserInteractionEnabled = isConnected
+        playPauseButton.isUserInteractionEnabled = isConnected
+        homeButton.isUserInteractionEnabled = isConnected
     }
 
     private func applyConnectedDotGlow() {
@@ -389,7 +419,14 @@ class RemoteViewController: UIViewController, GoogleTVClientDelegate, DPadViewDe
         pairingVC.onDismiss = { [weak self] in
             self?.isPairingPresented = false
         }
-        present(pairingVC, animated: true)
+
+        if let presented = presentedViewController, !presented.isBeingDismissed {
+            presented.dismiss(animated: true) { [weak self] in
+                self?.present(pairingVC, animated: true)
+            }
+        } else {
+            present(pairingVC, animated: true)
+        }
     }
 }
 

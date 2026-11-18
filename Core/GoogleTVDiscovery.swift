@@ -28,29 +28,34 @@ class GoogleTVDiscovery: NSObject, NetServiceBrowserDelegate, NetServiceDelegate
         }
     }
 
-    private let browser = NetServiceBrowser()
+    private let remoteBrowser = NetServiceBrowser()
+    private let castBrowser = NetServiceBrowser()
     private var resolvingServices: [NetService] = []
     private var isSearching = false
 
     override init() {
         super.init()
-        browser.delegate = self
+        remoteBrowser.delegate = self
+        castBrowser.delegate = self
     }
 
     func startDiscovery() {
+        stopDiscovery()
         devices.removeAll()
         isSearching = true
         
         print("[Discovery] Iniciando escaneo de Android TV / Google TV...")
-        browser.searchForServices(ofType: "_androidtvremote2._tcp.", inDomain: "local.")
-        browser.searchForServices(ofType: "_googlecast._tcp.", inDomain: "local.")
+        remoteBrowser.searchForServices(ofType: "_androidtvremote2._tcp.", inDomain: "local.")
+        castBrowser.searchForServices(ofType: "_googlecast._tcp.", inDomain: "local.")
 
         // Sondeo rápido inmediato a la IP confirmada del televisor en la red local
         performDirectProbes()
     }
 
     func stopDiscovery() {
-        browser.stop()
+        remoteBrowser.stop()
+        castBrowser.stop()
+        resolvingServices.forEach { $0.stop() }
         resolvingServices.removeAll()
         isSearching = false
     }

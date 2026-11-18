@@ -417,7 +417,7 @@ class PairingViewController: UIViewController {
     /// Updates loading state and auto-dismisses on successful connection.
     func handleStatusChange(_ status: ConnectionStatus) {
         DispatchQueue.main.async { [weak self] in
-            guard let self = self else { return }
+            guard let self = self, !self.isDismissing else { return }
             switch status {
             case .connected:
                 // Pairing succeeded and remote session is active — dismiss

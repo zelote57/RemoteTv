@@ -607,17 +607,9 @@ class DevicePickerSheet: UIViewController, UITableViewDataSource, UITableViewDel
 
     @objc private func didTapScanAgain() {
         HapticManager.playSelection()
-        // Fade out current state before switching to loading
-        UIView.animate(withDuration: 0.18, animations: { [weak self] in
-            self?.tableView.alpha = 0
-            self?.emptyStateScrollView.alpha = 0
-        }, completion: { [weak self] _ in
-            guard let self = self else { return }
-            self.devices = []
-            self.isLoading = true
-            self.tableView.alpha = 1
-            self.emptyStateScrollView.alpha = 1
-        })
+        isLoading = true
+        devices = []
+        tableView.reloadData()
         startScanTimeout()
         delegate?.devicePickerDidRequestScanAgain(self)
     }
@@ -696,7 +688,7 @@ class DevicePickerSheet: UIViewController, UITableViewDataSource, UITableViewDel
         }
 
         let device = devices[indexPath.row]
-        let isConnected = (device.host == currentConnectedHost) || (currentConnectedHost == nil && indexPath.row == 0)
+        let isConnected = (currentConnectedHost != nil && device.host == currentConnectedHost)
         cell.configure(with: device, isConnected: isConnected)
         return cell
     }
@@ -705,8 +697,10 @@ class DevicePickerSheet: UIViewController, UITableViewDataSource, UITableViewDel
         tableView.deselectRow(at: indexPath, animated: true)
         HapticManager.playSelection()
         let selectedDevice = devices[indexPath.row]
-        delegate?.devicePickerDidSelectDevice(self, device: selectedDevice)
-        dismissAnimated()
+        dismissAnimated { [weak self] in
+            guard let self = self else { return }
+            self.delegate?.devicePickerDidSelectDevice(self, device: selectedDevice)
+        }
     }
 }
 
