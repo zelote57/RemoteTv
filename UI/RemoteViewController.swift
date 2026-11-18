@@ -101,7 +101,7 @@ class RemoteViewController: UIViewController, GoogleTVClientDelegate, DPadViewDe
         view.addSubview(headerView)
 
         pickerContainer.translatesAutoresizingMaskIntoConstraints = false
-        pickerContainer.clipsToBounds = true
+        pickerContainer.clipsToBounds = false
         headerView.addSubview(pickerContainer)
 
         chevronButton.isUserInteractionEnabled = false
@@ -314,7 +314,7 @@ class RemoteViewController: UIViewController, GoogleTVClientDelegate, DPadViewDe
         guard presentedViewController == nil else { return }
 
         let sheet = DevicePickerSheet()
-        sheet.modalPresentationStyle = .overFullScreen
+        sheet.modalPresentationStyle = .overCurrentContext
         sheet.modalTransitionStyle = .crossDissolve
         sheet.delegate = self
         sheet.devices = discovery.devices
@@ -724,52 +724,61 @@ private class SettingsButton: UIButton {
         ctx.setLineWidth(1.0)
         circlePath.stroke()
 
-        // 2. Solid Cogwheel Gear Icon (not a helm)
+        // 2. Icono de Engranaje / Configuración Mecánico (6 dientes anchos, estilo iOS Settings)
         let center = CGPoint(x: rect.midX, y: rect.midY)
         let iconColor = Theme.Colors.textPrimary
-        let toothCount = 8
-        let outerRadius: CGFloat = 9.5
-        let rootRadius: CGFloat = 7.0
-        let holeRadius: CGFloat = 3.2
-        let halfToothArc: CGFloat = (.pi * 2.0 / CGFloat(toothCount)) * 0.28
+        let toothCount = 6
+        let outerRadius: CGFloat = 9.0
+        let rootRadius: CGFloat = 6.8
+        let holeRadius: CGFloat = 2.8
+        
+        let tipHalfAngle: CGFloat = 12.0 * (.pi / 180.0)   // 12° a cada lado (cresta de 24°)
+        let baseHalfAngle: CGFloat = 16.5 * (.pi / 180.0)  // 16.5° a cada lado (base de 33°)
+        let stepAngle: CGFloat = (.pi * 2.0) / CGFloat(toothCount) // 60° entre dientes
 
         let gearPath = UIBezierPath()
 
         for i in 0..<toothCount {
-            let toothAngle = CGFloat(i) * (.pi * 2.0 / CGFloat(toothCount))
+            let toothAngle = CGFloat(i) * stepAngle
+            let tipStart = toothAngle - tipHalfAngle
+            let tipEnd = toothAngle + tipHalfAngle
+            let baseEnd = toothAngle + baseHalfAngle
+            
+            let nextToothAngle = CGFloat(i + 1) * stepAngle
+            let nextBaseStart = nextToothAngle - baseHalfAngle
+            let nextTipStart = nextToothAngle - tipHalfAngle
 
-            // Outer tooth crest (flat top)
-            let crAngle1 = toothAngle - halfToothArc
-            let crAngle2 = toothAngle + halfToothArc
-            // Valley between teeth
-            let valleyAngle1 = crAngle2
-            let nextToothAngle = CGFloat(i + 1) * (.pi * 2.0 / CGFloat(toothCount))
-            let valleyAngle2 = nextToothAngle - halfToothArc
-
-            // Tooth outer arc
             if i == 0 {
-                let startPt = CGPoint(x: center.x + outerRadius * cos(crAngle1),
-                                      y: center.y + outerRadius * sin(crAngle1))
+                let startPt = CGPoint(
+                    x: center.x + outerRadius * cos(tipStart),
+                    y: center.y + outerRadius * sin(tipStart)
+                )
                 gearPath.move(to: startPt)
             }
-            gearPath.addArc(withCenter: center, radius: outerRadius,
-                            startAngle: crAngle1, endAngle: crAngle2, clockwise: true)
 
-            // Drop to root (valley)
-            let valleyPt = CGPoint(x: center.x + rootRadius * cos(valleyAngle1),
-                                   y: center.y + rootRadius * sin(valleyAngle1))
-            gearPath.addLine(to: valleyPt)
-            gearPath.addArc(withCenter: center, radius: rootRadius,
-                            startAngle: valleyAngle1, endAngle: valleyAngle2, clockwise: true)
+            // Cresta del diente (arco exterior plano y ancho)
+            gearPath.addArc(withCenter: center, radius: outerRadius, startAngle: tipStart, endAngle: tipEnd, clockwise: true)
 
-            // Rise back to next tooth
-            let risePt = CGPoint(x: center.x + outerRadius * cos(valleyAngle2),
-                                 y: center.y + outerRadius * sin(valleyAngle2))
-            gearPath.addLine(to: risePt)
+            // Flanco descendente hacia la raíz
+            let valleyStartPt = CGPoint(
+                x: center.x + rootRadius * cos(baseEnd),
+                y: center.y + rootRadius * sin(baseEnd)
+            )
+            gearPath.addLine(to: valleyStartPt)
+
+            // Arco del valle entre dientes
+            gearPath.addArc(withCenter: center, radius: rootRadius, startAngle: baseEnd, endAngle: nextBaseStart, clockwise: true)
+
+            // Flanco ascendente hacia la cresta del siguiente diente
+            let nextTipPt = CGPoint(
+                x: center.x + outerRadius * cos(nextTipStart),
+                y: center.y + outerRadius * sin(nextTipStart)
+            )
+            gearPath.addLine(to: nextTipPt)
         }
         gearPath.close()
 
-        // Central hole (cut out with even-odd fill rule)
+        // Orificio central circular limpio
         let holeRect = CGRect(x: center.x - holeRadius, y: center.y - holeRadius, width: holeRadius * 2.0, height: holeRadius * 2.0)
         gearPath.append(UIBezierPath(ovalIn: holeRect))
         gearPath.usesEvenOddFillRule = true

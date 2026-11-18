@@ -81,28 +81,39 @@ class GoogleTVDiscovery: NSObject, NetServiceBrowserDelegate, NetServiceDelegate
 
     func netServiceDidResolveAddress(_ sender: NetService) {
         let name = sender.name
-        guard let hostName = sender.hostName else { return }
+        let hostName = sender.hostName ?? ""
         
-        var ipAddress = hostName
+        var ipAddress = ""
         if let addresses = sender.addresses {
             for addressData in addresses {
-                var storage = sockaddr_storage()
-                (addressData as NSData).getBytes(&storage, length: MemoryLayout<sockaddr_storage>.size)
-                if storage.ss_family == sa_family_t(AF_INET) {
-                    var addr = sockaddr_in()
-                    (addressData as NSData).getBytes(&addr, length: MemoryLayout<sockaddr_in>.size)
-                    let ipStr = String(cString: inet_ntoa(addr.sin_addr))
-                    ipAddress = ipStr
+                guard addressData.count >= MemoryLayout<sockaddr_in>.size else { continue }
+                addressData.withUnsafeBytes { rawBuffer in
+                    guard let baseAddress = rawBuffer.baseAddress else { return }
+                    let family = baseAddress.assumingMemoryBound(to: sockaddr.self).pointee.sa_family
+                    if family == sa_family_t(AF_INET) {
+                        let sin = baseAddress.assumingMemoryBound(to: sockaddr_in.self).pointee
+                        let ipStr = String(cString: inet_ntoa(sin.sin_addr))
+                        ipAddress = ipStr
+                    }
+                }
+                if !ipAddress.isEmpty {
                     break
                 }
             }
         }
 
-        if ipAddress.contains(".local") || ipAddress.isEmpty {
-            ipAddress = AppConstants.Network.targetDeviceFallbackIP
+        if ipAddress.isEmpty || ipAddress.contains(".local") {
+            ipAddress = hostName.isEmpty ? AppConstants.Network.targetDeviceFallbackIP : hostName
+            if ipAddress.contains(".local") {
+                ipAddress = AppConstants.Network.targetDeviceFallbackIP
+            }
         }
         let fixedTv = DiscoveredTV(name: name, host: ipAddress, port: GoogleTVPorts.pairing)
         addDiscoveredDevice(fixedTv)
+    }
+
+    func netService(_ sender: NetService, didNotResolve errorDict: [String: NSNumber]) {
+        print("[Discovery] mDNS no pudo resolver servicio: \(sender.name)")
     }
 
     private func addDiscoveredDevice(_ tv: DiscoveredTV) {
