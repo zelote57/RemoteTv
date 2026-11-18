@@ -11,6 +11,10 @@ class PairingViewController: UIViewController {
     private let tvName: String
     private weak var client: GoogleTVClient?
 
+    // MARK: - Callbacks
+    /// Called when this modal is fully dismissed (cancel or success).
+    var onDismiss: (() -> Void)?
+
     // MARK: - Subviews
     private let backdropView = UIView()
     private let containerView = UIView()
@@ -114,7 +118,6 @@ class PairingViewController: UIViewController {
               let duration = notification.userInfo?[UIResponder.keyboardAnimationDurationUserInfoKey] as? Double else { return }
 
         let keyboardTop = UIScreen.main.bounds.height - keyboardFrame.height
-        let containerBottom = UIScreen.main.bounds.height - (containerView.frame.maxY)
         let overlap = containerView.frame.maxY - keyboardTop + 16
 
         if overlap > 0 {
@@ -395,22 +398,48 @@ class PairingViewController: UIViewController {
         clearError()
         setLoading(true)
         pinField.resignFirstResponder()
-
+        // Result handled via handleStatusChange(_:) called by RemoteViewController
         client?.submitPin(pin)
-
-        // Listen for status updates to know if pairing succeeded or failed
-        // The dismiss is triggered by clientDidChangeStatus in RemoteViewController
-        // as it transitions to .connecting or back to .discovered(.error)
-        // We wait up to 10s, then stop spinner if no response
-        DispatchQueue.main.asyncAfter(deadline: .now() + 10.0) { [weak self] in
-            self?.setLoading(false)
-        }
     }
 
     @objc private func didTapCancel() {
         HapticManager.playTactileClick()
+        client?.cancelPairing()
         pinField.resignFirstResponder()
-        dismissAnimated()
+        dismissAnimated { [weak self] in
+            self?.onDismiss?()
+        }
+    }
+
+    // MARK: - Status-driven updates (called by RemoteViewController)
+
+    /// Called by RemoteViewController when GoogleTVClient reports a new status.
+    /// Updates loading state and auto-dismisses on successful connection.
+    func handleStatusChange(_ status: ConnectionStatus) {
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            switch status {
+            case .connected:
+                // Pairing succeeded and remote session is active — dismiss
+                self.setLoading(false)
+                HapticManager.playSuccess()
+                self.dismissAnimated { [weak self] in
+                    self?.onDismiss?()
+                }
+            case .discovered, .disconnected:
+                // Pairing failed or PIN was rejected — show error, let user retry
+                self.setLoading(false)
+                self.showError(L10n.Pairing.errorBadPin)
+                HapticManager.playError()
+            case .error(let msg):
+                self.setLoading(false)
+                self.showError(msg)
+                HapticManager.playError()
+            default:
+                // .connecting, .searching, .pairingRequired — keep loading shown
+                break
+            }
+        }
     }
 
     // MARK: - Presentation & Dismissal
@@ -521,7 +550,6 @@ extension PairingViewController: UITextFieldDelegate {
     }
 
     func textField(_ textField: UITextField, shouldChangeCharactersIn range: NSRange, replacementString string: String) -> Bool {
-        // Max 8 chars for a typical PIN code; clear error on typing
         let currentText = textField.text ?? ""
         guard let stringRange = Range(range, in: currentText) else { return false }
         let updatedText = currentText.replacingCharacters(in: stringRange, with: string)

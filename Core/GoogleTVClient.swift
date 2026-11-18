@@ -117,6 +117,16 @@ class GoogleTVClient: GoogleTVDiscoveryDelegate, PairingServiceDelegate, RemoteS
         pairingService.submitPin(pin)
     }
 
+    /// Cancels an active pairing session initiated by the user and resets status to .discovered.
+    func cancelPairing() {
+        pairingService.close()
+        if let name = currentTVName {
+            currentStatus = .discovered(name)
+        } else {
+            currentStatus = .disconnected
+        }
+    }
+
     // MARK: - PairingServiceDelegate
 
     func pairingDidRequestPin() {

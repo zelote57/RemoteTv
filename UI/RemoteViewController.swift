@@ -32,6 +32,10 @@ class RemoteViewController: UIViewController, GoogleTVClientDelegate, DPadViewDe
     private let client = GoogleTVClient.shared
     private let discovery = GoogleTVDiscovery.shared
 
+    // MARK: - State
+    /// Guards against stacking multiple PairingViewController modals.
+    private var isPairingPresented: Bool = false
+
     // MARK: - Ciclo de Vida
 
     override func viewDidLoad() {
@@ -304,6 +308,11 @@ class RemoteViewController: UIViewController, GoogleTVClientDelegate, DPadViewDe
         if case .pairingRequired(let name) = status {
             showPairingViewController(for: name)
         }
+
+        // Forward status changes to PairingVC if currently presented
+        if let pairingVC = presentedViewController as? PairingViewController {
+            pairingVC.handleStatusChange(status)
+        }
     }
 
     private func updateStatusUI(_ status: ConnectionStatus) {
@@ -372,11 +381,14 @@ class RemoteViewController: UIViewController, GoogleTVClientDelegate, DPadViewDe
     }
 
     private func showPairingViewController(for tvName: String) {
-        // Avoid stacking multiple pairing modals if status fires more than once
-        guard presentedViewController == nil else { return }
+        guard !isPairingPresented else { return }
+        isPairingPresented = true
         let pairingVC = PairingViewController(tvName: tvName, client: client)
         pairingVC.modalPresentationStyle = .overFullScreen
         pairingVC.modalTransitionStyle = .crossDissolve
+        pairingVC.onDismiss = { [weak self] in
+            self?.isPairingPresented = false
+        }
         present(pairingVC, animated: true)
     }
 }

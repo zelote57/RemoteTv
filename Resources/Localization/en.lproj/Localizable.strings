@@ -39,6 +39,7 @@
 "picker.detected_count" = "%d detected";
 "picker.scanning_local_network" = "Scanning local network";
 "picker.active_search" = "Active scan";
+"picker.scanning_in_progress" = "Searching for televisions on the network…";
 "picker.search_completed" = "Scan completed";
 "picker.current_badge" = "Current";
 "picker.connected_status" = "Connected";

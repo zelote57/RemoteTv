@@ -39,6 +39,7 @@
 "picker.detected_count" = "%d detectados";
 "picker.scanning_local_network" = "Escaneando red local";
 "picker.active_search" = "Búsqueda activa";
+"picker.scanning_in_progress" = "Buscando televisores en la red…";
 "picker.search_completed" = "Búsqueda finalizada";
 "picker.current_badge" = "Actual";
 "picker.connected_status" = "Conectado";

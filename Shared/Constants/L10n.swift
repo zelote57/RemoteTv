@@ -129,6 +129,10 @@ enum L10n {
             return "picker.active_search".localized
         }
 
+        static var scanningInProgress: String {
+            return "picker.scanning_in_progress".localized
+        }
+
         static var searchCompleted: String {
             return "picker.search_completed".localized
         }

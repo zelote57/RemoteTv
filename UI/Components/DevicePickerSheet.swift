@@ -77,6 +77,21 @@ class DevicePickerSheet: UIViewController, UITableViewDataSource, UITableViewDel
     private var containerHeightConstraint: NSLayoutConstraint?
     private var isDismissing: Bool = false
 
+    // Loading state — shown when actively scanning (open or re-scan triggered)
+    private var isLoading: Bool = false {
+        didSet {
+            updateViewState()
+        }
+    }
+
+    // Loading view shown as third content state during scan
+    private let loadingView = UIView()
+    private let loadingLargeSpinner = UIActivityIndicatorView(style: .gray)
+    private let loadingLabel = UILabel()
+
+    // Scan timeout timer — switches to empty state if no devices found after 8 seconds
+    private var scanTimeoutTimer: Timer?
+
     // MARK: - Lifecycle
 
     override func viewDidLoad() {
@@ -84,7 +99,13 @@ class DevicePickerSheet: UIViewController, UITableViewDataSource, UITableViewDel
         setupViews()
         setupGestureRecognizers()
         setupNotifications()
-        updateViewState()
+        if devices.isEmpty {
+            isLoading = true
+            startScanTimeout()
+        } else {
+            isLoading = false
+            updateViewState()
+        }
     }
 
     override func viewWillAppear(_ animated: Bool) {
@@ -98,6 +119,7 @@ class DevicePickerSheet: UIViewController, UITableViewDataSource, UITableViewDel
     }
 
     deinit {
+        scanTimeoutTimer?.invalidate()
         NotificationCenter.default.removeObserver(self)
     }
 
@@ -125,6 +147,9 @@ class DevicePickerSheet: UIViewController, UITableViewDataSource, UITableViewDel
 
     @objc private func handleDiscoveryUpdated(_ notification: Notification) {
         if let updatedDevices = notification.object as? [DiscoveredTV] {
+            scanTimeoutTimer?.invalidate()
+            scanTimeoutTimer = nil
+            isLoading = false
             self.devices = updatedDevices
         }
     }
@@ -220,6 +245,23 @@ class DevicePickerSheet: UIViewController, UITableViewDataSource, UITableViewDel
         emptyDescLabel.numberOfLines = 0
         emptyDescLabel.text = L10n.Picker.emptyDescription
         emptyStateContainer.addSubview(emptyDescLabel)
+
+        // 6b. Loading View (shown while scanning)
+        loadingView.translatesAutoresizingMaskIntoConstraints = false
+        loadingView.backgroundColor = .clear
+        loadingView.isHidden = true
+        containerView.addSubview(loadingView)
+
+        loadingLargeSpinner.translatesAutoresizingMaskIntoConstraints = false
+        loadingLargeSpinner.hidesWhenStopped = true
+        loadingView.addSubview(loadingLargeSpinner)
+
+        loadingLabel.translatesAutoresizingMaskIntoConstraints = false
+        loadingLabel.font = UIFont.systemFont(ofSize: 14, weight: .medium)
+        loadingLabel.text = L10n.Picker.scanningInProgress
+        loadingLabel.textAlignment = .center
+        loadingLabel.numberOfLines = 0
+        loadingView.addSubview(loadingLabel)
 
         // 7. Diagnostic Troubleshooting Card
         diagnosticCardView.translatesAutoresizingMaskIntoConstraints = false
@@ -362,6 +404,19 @@ class DevicePickerSheet: UIViewController, UITableViewDataSource, UITableViewDel
             tipPowerRow.trailingAnchor.constraint(equalTo: diagnosticCardView.trailingAnchor, constant: -12),
             tipPowerRow.bottomAnchor.constraint(equalTo: diagnosticCardView.bottomAnchor, constant: -12),
 
+            // Loading View
+            loadingView.topAnchor.constraint(equalTo: subtitleLabel.bottomAnchor, constant: 14),
+            loadingView.leadingAnchor.constraint(equalTo: containerView.leadingAnchor),
+            loadingView.trailingAnchor.constraint(equalTo: containerView.trailingAnchor),
+            loadingView.bottomAnchor.constraint(equalTo: actionsContainer.topAnchor, constant: -10),
+
+            loadingLargeSpinner.centerXAnchor.constraint(equalTo: loadingView.centerXAnchor),
+            loadingLargeSpinner.centerYAnchor.constraint(equalTo: loadingView.centerYAnchor, constant: -20),
+
+            loadingLabel.topAnchor.constraint(equalTo: loadingLargeSpinner.bottomAnchor, constant: 16),
+            loadingLabel.leadingAnchor.constraint(equalTo: loadingView.leadingAnchor, constant: 32),
+            loadingLabel.trailingAnchor.constraint(equalTo: loadingView.trailingAnchor, constant: -32),
+
             // Bottom Actions Container
             actionsContainer.leadingAnchor.constraint(equalTo: containerView.leadingAnchor, constant: 18),
             actionsContainer.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -18),
@@ -442,6 +497,8 @@ class DevicePickerSheet: UIViewController, UITableViewDataSource, UITableViewDel
     func dismissAnimated(completion: (() -> Void)? = nil) {
         guard !isDismissing else { return }
         isDismissing = true
+        scanTimeoutTimer?.invalidate()
+        scanTimeoutTimer = nil
 
         UIView.animate(withDuration: 0.25, delay: 0, options: [.curveEaseIn], animations: { [weak self] in
             guard let self = self else { return }
@@ -456,19 +513,37 @@ class DevicePickerSheet: UIViewController, UITableViewDataSource, UITableViewDel
     // MARK: - View State & Theme
 
     private func updateViewState() {
-        let hasDevices = !devices.isEmpty
-        tableView.isHidden = !hasDevices
-        emptyStateScrollView.isHidden = hasDevices
-
         titleLabel.text = L10n.Picker.title
 
-        if hasDevices {
+        if isLoading {
+            // State 1: Scanning in progress — show spinner, hide list and empty state
+            tableView.isHidden = true
+            emptyStateScrollView.isHidden = true
+            loadingView.isHidden = false
+            loadingLargeSpinner.startAnimating()
+            badgeLabel.text = "  \(L10n.Picker.detectedCount(0))  "
+            badgeLabel.backgroundColor = Theme.isDark ? UIColor(white: 1.0, alpha: 0.08) : UIColor(red: 241/255, green: 245/255, blue: 249/255, alpha: 1.0)
+            badgeLabel.textColor = Theme.Colors.textSecondary
+            scanAgainButton.setTitle(L10n.Picker.scanAgain, for: .normal)
+        } else if !devices.isEmpty {
+            // State 2: Devices found — show list, stop header spinner
+            isScanning = false
+            tableView.isHidden = false
+            emptyStateScrollView.isHidden = true
+            loadingView.isHidden = true
+            loadingLargeSpinner.stopAnimating()
             badgeLabel.text = "  \(L10n.Picker.wifiBadge)  "
             badgeLabel.backgroundColor = Theme.Colors.badgeWifiBackground
             badgeLabel.textColor = Theme.Colors.badgeWifiText
             scanAgainButton.setTitle(L10n.Picker.scanAgain, for: .normal)
             tableView.reloadData()
         } else {
+            // State 3: Scan complete, no devices — show empty state
+            isScanning = false
+            tableView.isHidden = true
+            emptyStateScrollView.isHidden = false
+            loadingView.isHidden = true
+            loadingLargeSpinner.stopAnimating()
             badgeLabel.text = "  \(L10n.Picker.detectedCount(0))  "
             badgeLabel.backgroundColor = Theme.isDark ? UIColor(white: 1.0, alpha: 0.08) : UIColor(red: 241/255, green: 245/255, blue: 249/255, alpha: 1.0)
             badgeLabel.textColor = Theme.Colors.textSecondary
@@ -519,6 +594,8 @@ class DevicePickerSheet: UIViewController, UITableViewDataSource, UITableViewDel
         tipPermissionRow.applyTheme()
         tipPowerRow.applyTheme()
 
+        loadingLabel.textColor = Theme.Colors.textSecondary
+        loadingLargeSpinner.style = Theme.isDark ? .white : .gray
         emptyHeroCircle.applyTheme()
         manualIPButton.applyTheme()
         scanAgainButton.applyTheme()
@@ -530,13 +607,38 @@ class DevicePickerSheet: UIViewController, UITableViewDataSource, UITableViewDel
 
     @objc private func didTapScanAgain() {
         HapticManager.playSelection()
-        isScanning = true
+        // Fade out current state before switching to loading
+        UIView.animate(withDuration: 0.18, animations: { [weak self] in
+            self?.tableView.alpha = 0
+            self?.emptyStateScrollView.alpha = 0
+        }, completion: { [weak self] _ in
+            guard let self = self else { return }
+            self.devices = []
+            self.isLoading = true
+            self.tableView.alpha = 1
+            self.emptyStateScrollView.alpha = 1
+        })
+        startScanTimeout()
         delegate?.devicePickerDidRequestScanAgain(self)
     }
 
     @objc private func didTapManualIP() {
         HapticManager.playSelection()
         presentManualIPAlert()
+    }
+
+    // MARK: - Scan Timeout
+
+    private func startScanTimeout() {
+        scanTimeoutTimer?.invalidate()
+        scanTimeoutTimer = Timer.scheduledTimer(withTimeInterval: 8.0, repeats: false) { [weak self] _ in
+            guard let self = self else { return }
+            DispatchQueue.main.async {
+                if self.isLoading && self.devices.isEmpty {
+                    self.isLoading = false
+                }
+            }
+        }
     }
 
     private func presentManualIPAlert() {
