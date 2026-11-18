@@ -101,6 +101,7 @@ class RemoteViewController: UIViewController, GoogleTVClientDelegate, DPadViewDe
         view.addSubview(headerView)
 
         pickerContainer.translatesAutoresizingMaskIntoConstraints = false
+        pickerContainer.clipsToBounds = true
         headerView.addSubview(pickerContainer)
 
         chevronButton.isUserInteractionEnabled = false
@@ -108,6 +109,10 @@ class RemoteViewController: UIViewController, GoogleTVClientDelegate, DPadViewDe
         pickerContainer.addSubview(chevronButton)
 
         tvNameLabel.font = UIFont.systemFont(ofSize: 19, weight: .bold)
+        tvNameLabel.lineBreakMode = .byTruncatingTail
+        tvNameLabel.adjustsFontSizeToFitWidth = true
+        tvNameLabel.minimumScaleFactor = 0.80
+        tvNameLabel.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
         tvNameLabel.isUserInteractionEnabled = false
         tvNameLabel.translatesAutoresizingMaskIntoConstraints = false
         pickerContainer.addSubview(tvNameLabel)
@@ -116,6 +121,7 @@ class RemoteViewController: UIViewController, GoogleTVClientDelegate, DPadViewDe
         statusDot.translatesAutoresizingMaskIntoConstraints = false
         
         statusSubtitleLabel.font = UIFont.systemFont(ofSize: 13, weight: .medium)
+        statusSubtitleLabel.lineBreakMode = .byTruncatingTail
         statusSubtitleLabel.translatesAutoresizingMaskIntoConstraints = false
 
         statusRow.axis = .horizontal
@@ -130,6 +136,7 @@ class RemoteViewController: UIViewController, GoogleTVClientDelegate, DPadViewDe
         headerActions.axis = .horizontal
         headerActions.spacing = AppConstants.UI.headerActionsSpacing
         headerActions.alignment = .center
+        headerActions.setContentCompressionResistancePriority(.required, for: .horizontal)
         headerActions.translatesAutoresizingMaskIntoConstraints = false
         
         settingsButton.translatesAutoresizingMaskIntoConstraints = false
@@ -180,22 +187,23 @@ class RemoteViewController: UIViewController, GoogleTVClientDelegate, DPadViewDe
             pickerContainer.leadingAnchor.constraint(equalTo: headerView.leadingAnchor),
             pickerContainer.topAnchor.constraint(equalTo: headerView.topAnchor),
             pickerContainer.bottomAnchor.constraint(equalTo: headerView.bottomAnchor),
-            pickerContainer.trailingAnchor.constraint(lessThanOrEqualTo: headerActions.leadingAnchor, constant: -8),
+            pickerContainer.trailingAnchor.constraint(equalTo: headerActions.leadingAnchor, constant: -10),
 
             chevronButton.leadingAnchor.constraint(equalTo: pickerContainer.leadingAnchor),
             chevronButton.centerYAnchor.constraint(equalTo: pickerContainer.centerYAnchor),
             chevronButton.widthAnchor.constraint(equalToConstant: headerBtnSize),
             chevronButton.heightAnchor.constraint(equalToConstant: headerBtnSize),
 
-            tvNameLabel.leadingAnchor.constraint(equalTo: chevronButton.trailingAnchor, constant: 12),
-            tvNameLabel.topAnchor.constraint(equalTo: chevronButton.topAnchor, constant: 3),
-            tvNameLabel.trailingAnchor.constraint(lessThanOrEqualTo: pickerContainer.trailingAnchor),
+            tvNameLabel.leadingAnchor.constraint(equalTo: chevronButton.trailingAnchor, constant: 10),
+            tvNameLabel.topAnchor.constraint(equalTo: chevronButton.topAnchor, constant: 2),
+            tvNameLabel.trailingAnchor.constraint(equalTo: pickerContainer.trailingAnchor),
 
             statusDot.widthAnchor.constraint(equalToConstant: AppConstants.UI.statusDotDiameter),
             statusDot.heightAnchor.constraint(equalToConstant: AppConstants.UI.statusDotDiameter),
 
             statusRow.leadingAnchor.constraint(equalTo: tvNameLabel.leadingAnchor),
             statusRow.topAnchor.constraint(equalTo: tvNameLabel.bottomAnchor, constant: 3),
+            statusRow.trailingAnchor.constraint(lessThanOrEqualTo: pickerContainer.trailingAnchor),
 
             headerActions.trailingAnchor.constraint(equalTo: headerView.trailingAnchor),
             headerActions.centerYAnchor.constraint(equalTo: headerView.centerYAnchor),
@@ -303,9 +311,10 @@ class RemoteViewController: UIViewController, GoogleTVClientDelegate, DPadViewDe
 
     @objc private func didTapDevicePicker() {
         HapticManager.playTactileClick()
+        guard presentedViewController == nil else { return }
 
         let sheet = DevicePickerSheet()
-        sheet.modalPresentationStyle = .overCurrentContext
+        sheet.modalPresentationStyle = .overFullScreen
         sheet.modalTransitionStyle = .crossDissolve
         sheet.delegate = self
         sheet.devices = discovery.devices
@@ -715,44 +724,57 @@ private class SettingsButton: UIButton {
         ctx.setLineWidth(1.0)
         circlePath.stroke()
 
+        // 2. Solid Cogwheel Gear Icon (not a helm)
         let center = CGPoint(x: rect.midX, y: rect.midY)
         let iconColor = Theme.Colors.textPrimary
+        let toothCount = 8
+        let outerRadius: CGFloat = 9.5
+        let rootRadius: CGFloat = 7.0
+        let holeRadius: CGFloat = 3.2
+        let halfToothArc: CGFloat = (.pi * 2.0 / CGFloat(toothCount)) * 0.28
 
-        // 2. Icono de Engranaje / Configuración Vectorial
-        ctx.setStrokeColor(iconColor.cgColor)
-        ctx.setFillColor(iconColor.cgColor)
+        let gearPath = UIBezierPath()
 
-        let innerRadius: CGFloat = 3.2
-        let gearRadius: CGFloat = 6.8
-        let toothLength: CGFloat = 2.2
+        for i in 0..<toothCount {
+            let toothAngle = CGFloat(i) * (.pi * 2.0 / CGFloat(toothCount))
 
-        let gearBody = UIBezierPath(arcCenter: center, radius: gearRadius, startAngle: 0, endAngle: .pi * 2, clockwise: true)
-        gearBody.lineWidth = 2.0
-        gearBody.stroke()
+            // Outer tooth crest (flat top)
+            let crAngle1 = toothAngle - halfToothArc
+            let crAngle2 = toothAngle + halfToothArc
+            // Valley between teeth
+            let valleyAngle1 = crAngle2
+            let nextToothAngle = CGFloat(i + 1) * (.pi * 2.0 / CGFloat(toothCount))
+            let valleyAngle2 = nextToothAngle - halfToothArc
 
-        ctx.setLineWidth(2.2)
-        ctx.setLineCap(.round)
+            // Tooth outer arc
+            if i == 0 {
+                let startPt = CGPoint(x: center.x + outerRadius * cos(crAngle1),
+                                      y: center.y + outerRadius * sin(crAngle1))
+                gearPath.move(to: startPt)
+            }
+            gearPath.addArc(withCenter: center, radius: outerRadius,
+                            startAngle: crAngle1, endAngle: crAngle2, clockwise: true)
 
-        for i in 0..<6 {
-            let angle = CGFloat(i) * CGFloat.pi / 3.0
-            let cosA = cos(angle)
-            let sinA = sin(angle)
+            // Drop to root (valley)
+            let valleyPt = CGPoint(x: center.x + rootRadius * cos(valleyAngle1),
+                                   y: center.y + rootRadius * sin(valleyAngle1))
+            gearPath.addLine(to: valleyPt)
+            gearPath.addArc(withCenter: center, radius: rootRadius,
+                            startAngle: valleyAngle1, endAngle: valleyAngle2, clockwise: true)
 
-            let pStart = CGPoint(x: center.x + gearRadius * cosA, y: center.y + gearRadius * sinA)
-            let pEnd = CGPoint(x: center.x + (gearRadius + toothLength) * cosA, y: center.y + (gearRadius + toothLength) * sinA)
-
-            let tooth = UIBezierPath()
-            tooth.move(to: pStart)
-            tooth.addLine(to: pEnd)
-            tooth.lineWidth = 2.2
-            tooth.lineCapStyle = .round
-            tooth.stroke()
+            // Rise back to next tooth
+            let risePt = CGPoint(x: center.x + outerRadius * cos(valleyAngle2),
+                                 y: center.y + outerRadius * sin(valleyAngle2))
+            gearPath.addLine(to: risePt)
         }
+        gearPath.close()
 
-        ctx.setFillColor(surfaceColor.cgColor)
-        ctx.fillEllipse(in: CGRect(x: center.x - innerRadius, y: center.y - innerRadius, width: innerRadius * 2, height: innerRadius * 2))
-        ctx.setStrokeColor(iconColor.cgColor)
-        ctx.setLineWidth(1.2)
-        ctx.strokeEllipse(in: CGRect(x: center.x - innerRadius, y: center.y - innerRadius, width: innerRadius * 2, height: innerRadius * 2))
+        // Central hole (cut out with even-odd fill rule)
+        let holeRect = CGRect(x: center.x - holeRadius, y: center.y - holeRadius, width: holeRadius * 2.0, height: holeRadius * 2.0)
+        gearPath.append(UIBezierPath(ovalIn: holeRect))
+        gearPath.usesEvenOddFillRule = true
+
+        ctx.setFillColor(iconColor.cgColor)
+        gearPath.fill()
     }
 }

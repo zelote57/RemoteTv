@@ -112,16 +112,16 @@ enum AppConstants {
         static let dpadCenterRatio: CGFloat = 120.0 / 280.0
         
         static let actionButtonSize: CGFloat = 70.0
-        static let headerButtonSize: CGFloat = 48.0
-        static let powerButtonSize: CGFloat = 48.0
-        static let themeToggleButtonSize: CGFloat = 48.0
-        static let settingsButtonSize: CGFloat = 48.0
-        static let pickerChevronSize: CGFloat = 48.0
+        static let headerButtonSize: CGFloat = 44.0
+        static let powerButtonSize: CGFloat = 44.0
+        static let themeToggleButtonSize: CGFloat = 44.0
+        static let settingsButtonSize: CGFloat = 44.0
+        static let pickerChevronSize: CGFloat = 44.0
         
         static let headerHeight: CGFloat = 48.0
-        static let headerHorizontalInset: CGFloat = 20.0
+        static let headerHorizontalInset: CGFloat = 16.0
         static let headerTopOffset: CGFloat = 14.0
-        static let headerActionsSpacing: CGFloat = 10.0
+        static let headerActionsSpacing: CGFloat = 8.0
         
         static let actionsRowSpacing: CGFloat = 36.0
         static let actionsRowTopSpacing: CGFloat = 44.0

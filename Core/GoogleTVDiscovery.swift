@@ -29,33 +29,43 @@ class GoogleTVDiscovery: NSObject, NetServiceBrowserDelegate, NetServiceDelegate
         }
     }
 
-    private let remoteBrowser = NetServiceBrowser()
-    private let castBrowser = NetServiceBrowser()
+    private var remoteBrowser: NetServiceBrowser?
+    private var castBrowser: NetServiceBrowser?
     private var resolvingServices: [NetService] = []
     private var isSearching = false
 
     override init() {
         super.init()
-        remoteBrowser.delegate = self
-        castBrowser.delegate = self
     }
 
     func startDiscovery() {
         stopDiscovery()
         devices.removeAll()
         isSearching = true
-        
+
+        // Create fresh browser instances to avoid iOS 14+ state machine crash
+        // (reusing a stopped NetServiceBrowser throws NSInternalInconsistencyException)
+        let newRemoteBrowser = NetServiceBrowser()
+        newRemoteBrowser.delegate = self
+        self.remoteBrowser = newRemoteBrowser
+
+        let newCastBrowser = NetServiceBrowser()
+        newCastBrowser.delegate = self
+        self.castBrowser = newCastBrowser
+
         print("[Discovery] Iniciando escaneo de Android TV / Google TV...")
-        remoteBrowser.searchForServices(ofType: AppConstants.Network.mdnsServiceTypeRemote, inDomain: AppConstants.Network.mdnsLocalDomain)
-        castBrowser.searchForServices(ofType: AppConstants.Network.mdnsServiceTypeCast, inDomain: AppConstants.Network.mdnsLocalDomain)
+        newRemoteBrowser.searchForServices(ofType: AppConstants.Network.mdnsServiceTypeRemote, inDomain: AppConstants.Network.mdnsLocalDomain)
+        newCastBrowser.searchForServices(ofType: AppConstants.Network.mdnsServiceTypeCast, inDomain: AppConstants.Network.mdnsLocalDomain)
 
         // Sondeo rápido inmediato a la IP confirmada del televisor en la red local
         performDirectProbes()
     }
 
     func stopDiscovery() {
-        remoteBrowser.stop()
-        castBrowser.stop()
+        remoteBrowser?.stop()
+        remoteBrowser = nil
+        castBrowser?.stop()
+        castBrowser = nil
         resolvingServices.forEach { $0.stop() }
         resolvingServices.removeAll()
         isSearching = false

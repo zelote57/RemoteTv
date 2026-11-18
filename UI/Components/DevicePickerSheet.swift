@@ -194,6 +194,7 @@ class DevicePickerSheet: UIViewController, UITableViewDataSource, UITableViewDel
         titleLabel.font = UIFont.systemFont(ofSize: 19, weight: .bold)
         titleLabel.adjustsFontSizeToFitWidth = true
         titleLabel.minimumScaleFactor = 0.85
+        titleLabel.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
         containerView.addSubview(titleLabel)
 
         badgeLabel.translatesAutoresizingMaskIntoConstraints = false
@@ -340,6 +341,7 @@ class DevicePickerSheet: UIViewController, UITableViewDataSource, UITableViewDel
 
             badgeLabel.centerYAnchor.constraint(equalTo: titleLabel.centerYAnchor),
             badgeLabel.leadingAnchor.constraint(equalTo: titleLabel.trailingAnchor, constant: 8),
+            badgeLabel.trailingAnchor.constraint(lessThanOrEqualTo: closeButton.leadingAnchor, constant: -8),
             badgeLabel.heightAnchor.constraint(equalToConstant: 18),
             badgeLabel.widthAnchor.constraint(greaterThanOrEqualToConstant: 44),
 
@@ -709,6 +711,7 @@ class DevicePickerSheet: UIViewController, UITableViewDataSource, UITableViewDel
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
         HapticManager.playSelection()
+        guard indexPath.row < devices.count else { return }
         let selectedDevice = devices[indexPath.row]
         dismissAnimated { [weak self] in
             guard let self = self else { return }
