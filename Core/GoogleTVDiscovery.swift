@@ -116,6 +116,16 @@ class GoogleTVDiscovery: NSObject, NetServiceBrowserDelegate, NetServiceDelegate
         print("[Discovery] mDNS no pudo resolver servicio: \(sender.name)")
     }
 
+    func netServiceBrowser(_ browser: NetServiceBrowser, didNotSearch errorDict: [String: NSNumber]) {
+        print("[Discovery] mDNS didNotSearch error: \(errorDict)")
+        isSearching = false
+    }
+
+    func netServiceBrowserDidStopSearch(_ browser: NetServiceBrowser) {
+        print("[Discovery] mDNS stopped search")
+        isSearching = false
+    }
+
     private func addDiscoveredDevice(_ tv: DiscoveredTV) {
         DispatchQueue.main.async {
             if !self.devices.contains(where: { $0.host == tv.host }) {

@@ -45,7 +45,9 @@
     <key>NSBonjourServices</key>
     <array>
         <string>_androidtvremote2._tcp</string>
+        <string>_androidtvremote2._tcp.</string>
         <string>_googlecast._tcp</string>
+        <string>_googlecast._tcp.</string>
     </array>
 </dict>
 </plist>

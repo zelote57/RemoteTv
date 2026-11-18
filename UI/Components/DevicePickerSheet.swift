@@ -26,12 +26,14 @@ class DevicePickerSheet: UIViewController, UITableViewDataSource, UITableViewDel
 
     var devices: [DiscoveredTV] = [] {
         didSet {
+            guard isViewLoaded else { return }
             updateViewState()
         }
     }
 
     var isScanning: Bool = true {
         didSet {
+            guard isViewLoaded else { return }
             updateHeaderStatus()
         }
     }
@@ -77,9 +79,22 @@ class DevicePickerSheet: UIViewController, UITableViewDataSource, UITableViewDel
     private var containerHeightConstraint: NSLayoutConstraint?
     private var isDismissing: Bool = false
 
+    // MARK: - Initializers
+
+    override init(nibName nibNameOrNil: String?, bundle nibBundleOrNil: Bundle?) {
+        super.init(nibName: nibNameOrNil, bundle: nibBundleOrNil)
+        tableView.register(DevicePickerTVCell.self, forCellReuseIdentifier: DevicePickerTVCell.reuseIdentifier)
+    }
+
+    required init?(coder: NSCoder) {
+        super.init(coder: coder)
+        tableView.register(DevicePickerTVCell.self, forCellReuseIdentifier: DevicePickerTVCell.reuseIdentifier)
+    }
+
     // Loading state — shown when actively scanning (open or re-scan triggered)
     private var isLoading: Bool = false {
         didSet {
+            guard isViewLoaded else { return }
             updateViewState()
         }
     }
@@ -583,6 +598,8 @@ class DevicePickerSheet: UIViewController, UITableViewDataSource, UITableViewDel
     }
 
     private func applyTheme() {
+        guard isViewLoaded else { return }
+
         containerView.backgroundColor = Theme.Colors.sheetBackground
         containerView.layer.borderColor = Theme.Colors.sheetCardBorder.cgColor
         containerView.layer.borderWidth = 1.0
@@ -698,9 +715,10 @@ class DevicePickerSheet: UIViewController, UITableViewDataSource, UITableViewDel
     }
 
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        guard let cell = tableView.dequeueReusableCell(withIdentifier: DevicePickerTVCell.reuseIdentifier, for: indexPath) as? DevicePickerTVCell else {
-            return UITableViewCell()
-        }
+        let cell = (tableView.dequeueReusableCell(withIdentifier: DevicePickerTVCell.reuseIdentifier) as? DevicePickerTVCell)
+            ?? DevicePickerTVCell(style: .default, reuseIdentifier: DevicePickerTVCell.reuseIdentifier)
+
+        guard indexPath.row < devices.count else { return cell }
 
         let device = devices[indexPath.row]
         let isConnected = (currentConnectedHost != nil && device.host == currentConnectedHost)

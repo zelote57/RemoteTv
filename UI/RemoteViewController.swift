@@ -41,6 +41,7 @@ class RemoteViewController: UIViewController, GoogleTVClientDelegate, DPadViewDe
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        definesPresentationContext = true
         
         client.delegate = self
         dpadView.delegate = self
@@ -325,9 +326,9 @@ class RemoteViewController: UIViewController, GoogleTVClientDelegate, DPadViewDe
         }
         sheet.isScanning = true
 
-        discovery.startDiscovery()
-
-        present(sheet, animated: true)
+        present(sheet, animated: true) { [weak self] in
+            self?.discovery.startDiscovery()
+        }
     }
 
     // MARK: - DevicePickerDelegate
