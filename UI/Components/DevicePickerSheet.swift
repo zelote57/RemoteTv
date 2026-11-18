@@ -143,7 +143,7 @@ class DevicePickerSheet: UIViewController, UITableViewDataSource, UITableViewDel
         NotificationCenter.default.addObserver(
             self,
             selector: #selector(handleDiscoveryUpdated(_:)),
-            name: NSNotification.Name("GoogleTVDiscoveryDidUpdateDevicesNotification"),
+            name: GoogleTVDiscovery.didUpdateDevicesNotification,
             object: nil
         )
     }
@@ -535,7 +535,7 @@ class DevicePickerSheet: UIViewController, UITableViewDataSource, UITableViewDel
             loadingView.isHidden = false
             loadingLargeSpinner.startAnimating()
             badgeLabel.text = "  \(L10n.Picker.detectedCount(0))  "
-            badgeLabel.backgroundColor = Theme.isDark ? UIColor(white: 1.0, alpha: 0.08) : UIColor(red: 241/255, green: 245/255, blue: 249/255, alpha: 1.0)
+            badgeLabel.backgroundColor = Theme.Colors.badgeInactiveBackground
             badgeLabel.textColor = Theme.Colors.textSecondary
             scanAgainButton.setTitle(L10n.Picker.scanAgain, for: .normal)
         } else if !devices.isEmpty {
@@ -558,7 +558,7 @@ class DevicePickerSheet: UIViewController, UITableViewDataSource, UITableViewDel
             loadingView.isHidden = true
             loadingLargeSpinner.stopAnimating()
             badgeLabel.text = "  \(L10n.Picker.detectedCount(0))  "
-            badgeLabel.backgroundColor = Theme.isDark ? UIColor(white: 1.0, alpha: 0.08) : UIColor(red: 241/255, green: 245/255, blue: 249/255, alpha: 1.0)
+            badgeLabel.backgroundColor = Theme.Colors.badgeInactiveBackground
             badgeLabel.textColor = Theme.Colors.textSecondary
             scanAgainButton.setTitle(L10n.Picker.retrySearch, for: .normal)
         }
@@ -590,7 +590,7 @@ class DevicePickerSheet: UIViewController, UITableViewDataSource, UITableViewDel
         titleLabel.textColor = Theme.Colors.textPrimary
         subtitleLabel.textColor = Theme.Colors.textSecondary
 
-        closeButton.backgroundColor = Theme.isDark ? UIColor(white: 1.0, alpha: 0.08) : UIColor(red: 241/255, green: 245/255, blue: 249/255, alpha: 1.0)
+        closeButton.backgroundColor = Theme.Colors.sheetCloseButtonBackground
         closeButton.layer.borderColor = Theme.Colors.sheetCardBorder.cgColor
         closeButton.setTitleColor(Theme.Colors.textPrimary, for: .normal)
 
@@ -900,70 +900,6 @@ private class TVIconBadgeView: UIView {
             ctx.setFillColor(Theme.Colors.connected.cgColor)
             ctx.fillEllipse(in: dotRect)
         }
-    }
-}
-
-// MARK: - CircularCheckmarkView
-
-private class CircularCheckmarkView: UIView {
-
-    override init(frame: CGRect) {
-        super.init(frame: frame)
-        backgroundColor = .clear
-    }
-
-    required init?(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
-
-    override func draw(_ rect: CGRect) {
-        guard let ctx = UIGraphicsGetCurrentContext() else { return }
-
-        // Green Circle Fill
-        let circleRect = rect.insetBy(dx: 1.0, dy: 1.0)
-        ctx.setFillColor(Theme.Colors.connected.cgColor)
-        ctx.fillEllipse(in: circleRect)
-
-        // Crisp White Checkmark
-        ctx.setStrokeColor(UIColor.white.cgColor)
-        ctx.setLineWidth(2.4)
-        ctx.setLineCap(.round)
-        ctx.setLineJoin(.round)
-
-        let checkPath = UIBezierPath()
-        checkPath.move(to: CGPoint(x: rect.midX - 5.5, y: rect.midY - 0.5))
-        checkPath.addLine(to: CGPoint(x: rect.midX - 1.5, y: rect.midY + 3.8))
-        checkPath.addLine(to: CGPoint(x: rect.midX + 5.5, y: rect.midY - 4.0))
-        checkPath.stroke()
-    }
-}
-
-// MARK: - ChevronRightView
-
-private class ChevronRightView: UIView {
-
-    override init(frame: CGRect) {
-        super.init(frame: frame)
-        backgroundColor = .clear
-    }
-
-    required init?(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
-
-    override func draw(_ rect: CGRect) {
-        guard let ctx = UIGraphicsGetCurrentContext() else { return }
-
-        ctx.setStrokeColor(Theme.Colors.textSecondary.withAlphaComponent(0.6).cgColor)
-        ctx.setLineWidth(2.0)
-        ctx.setLineCap(.round)
-        ctx.setLineJoin(.round)
-
-        let path = UIBezierPath()
-        path.move(to: CGPoint(x: rect.midX - 3, y: rect.midY - 5))
-        path.addLine(to: CGPoint(x: rect.midX + 2.5, y: rect.midY))
-        path.addLine(to: CGPoint(x: rect.midX - 3, y: rect.midY + 5))
-        path.stroke()
     }
 }
 

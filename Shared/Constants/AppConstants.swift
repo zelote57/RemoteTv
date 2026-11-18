@@ -59,11 +59,17 @@ enum AppConstants {
         static let savedTvHost = "saved_tv_ip"
         static let tvPairedPrefix = "tv_paired_"
         static let appThemeMode = "app_theme_mode"
+        static let userLanguagePreference = "app_user_language_preference"
         
         /// Returns the persistence key for a specific TV host pairing status
         static func isPairedKey(for host: String) -> String {
             return "\(tvPairedPrefix)\(host)"
         }
+    }
+
+    // MARK: - External Links
+    enum Links {
+        static let gitHubRepository = "https://github.com/zelote57/RemoteTv"
     }
 
     // MARK: - KeyCodes Domain (Android TV / Google TV KeyEvent mapping)
@@ -109,15 +115,18 @@ enum AppConstants {
         static let headerButtonSize: CGFloat = 48.0
         static let powerButtonSize: CGFloat = 48.0
         static let themeToggleButtonSize: CGFloat = 48.0
+        static let settingsButtonSize: CGFloat = 48.0
         static let pickerChevronSize: CGFloat = 48.0
         
         static let headerHeight: CGFloat = 48.0
         static let headerHorizontalInset: CGFloat = 20.0
         static let headerTopOffset: CGFloat = 14.0
+        static let headerActionsSpacing: CGFloat = 10.0
         
         static let actionsRowSpacing: CGFloat = 36.0
         static let actionsRowTopSpacing: CGFloat = 44.0
         static let centerVerticalOffset: CGFloat = 20.0
+        static let standbyControlAlpha: CGFloat = 0.35
         
         static let statusDotDiameter: CGFloat = 8.0
         static let borderWidthStandard: CGFloat = 1.0

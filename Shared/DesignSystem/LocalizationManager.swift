@@ -22,7 +22,7 @@ class LocalizationManager {
     static let shared = LocalizationManager()
     
     static let languageDidChangeNotification = Notification.Name("RemoteTvLanguageDidChangeNotification")
-    private let storageKey = "app_user_language_preference"
+    private let storageKey = AppConstants.StorageKeys.userLanguagePreference
     
     private(set) var currentLanguage: AppLanguage = .system
     private var bundle: Bundle = .main

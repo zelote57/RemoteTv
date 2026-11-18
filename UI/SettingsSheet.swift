@@ -38,7 +38,7 @@ class SettingsSheet: UIViewController, UIGestureRecognizerDelegate {
     private let aboutDivider = UIView()
 
     // Developer & GitHub
-    private let developerRow = SettingsInfoRow(titleKey: "settings.developer_title", valueKey: "settings.developer_name")
+    private let developerRow = SettingsInfoRow()
     private let githubButton = SettingsGitHubRow()
 
     // Sheet animation constraint
@@ -420,7 +420,7 @@ class SettingsSheet: UIViewController, UIGestureRecognizerDelegate {
 
     @objc private func didTapGitHub() {
         HapticManager.playTactileClick()
-        guard let url = URL(string: "https://github.com/zelote57/RemoteTv") else { return }
+        guard let url = URL(string: AppConstants.Links.gitHubRepository) else { return }
         if #available(iOS 10.0, *) {
             UIApplication.shared.open(url, options: [:], completionHandler: nil)
         } else {
@@ -439,7 +439,7 @@ class SettingsSheet: UIViewController, UIGestureRecognizerDelegate {
 
         titleLabel.textColor = Theme.Colors.textPrimary
 
-        closeButton.backgroundColor = Theme.isDark ? UIColor(white: 1.0, alpha: 0.08) : UIColor(red: 241/255, green: 245/255, blue: 249/255, alpha: 1.0)
+        closeButton.backgroundColor = Theme.Colors.sheetCloseButtonBackground
         closeButton.layer.borderColor = Theme.Colors.sheetCardBorder.cgColor
         closeButton.setTitleColor(Theme.Colors.textPrimary, for: .normal)
 
@@ -574,8 +574,8 @@ private class SettingsInfoRow: UIView {
     private let titleLabel = UILabel()
     private let valueLabel = UILabel()
 
-    init(titleKey: String, valueKey: String) {
-        super.init(frame: .zero)
+    override init(frame: CGRect) {
+        super.init(frame: frame)
         setup()
     }
 
@@ -719,7 +719,7 @@ private class GitHubIconVectorView: UIView {
     override func draw(_ rect: CGRect) {
         guard let ctx = UIGraphicsGetCurrentContext() else { return }
 
-        let color = Theme.isDark ? UIColor.white : UIColor(red: 36/255, green: 41/255, blue: 47/255, alpha: 1.0)
+        let color = Theme.Colors.textPrimary
         ctx.setFillColor(color.cgColor)
         ctx.setStrokeColor(color.cgColor)
 
@@ -804,67 +804,5 @@ private class SettingsTVBadgeView: UIView {
 
         // Small remote control pulse dot in center of screen
         ctx.fillEllipse(in: CGRect(x: rect.midX - 2.0, y: screenRect.midY - 2.0, width: 4.0, height: 4.0))
-    }
-}
-
-// MARK: - CircularCheckmarkView
-
-private class CircularCheckmarkView: UIView {
-
-    override init(frame: CGRect) {
-        super.init(frame: frame)
-        backgroundColor = .clear
-    }
-
-    required init?(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
-
-    override func draw(_ rect: CGRect) {
-        guard let ctx = UIGraphicsGetCurrentContext() else { return }
-
-        let circleRect = rect.insetBy(dx: 1.0, dy: 1.0)
-        ctx.setFillColor(Theme.Colors.connected.cgColor)
-        ctx.fillEllipse(in: circleRect)
-
-        let checkmark = UIBezierPath()
-        checkmark.move(to: CGPoint(x: rect.minX + rect.width * 0.28, y: rect.minY + rect.height * 0.50))
-        checkmark.addLine(to: CGPoint(x: rect.minX + rect.width * 0.44, y: rect.minY + rect.height * 0.68))
-        checkmark.addLine(to: CGPoint(x: rect.minX + rect.width * 0.72, y: rect.minY + rect.height * 0.34))
-        checkmark.lineWidth = 1.8
-        checkmark.lineCapStyle = .round
-        checkmark.lineJoinStyle = .round
-
-        ctx.setStrokeColor(UIColor.white.cgColor)
-        checkmark.stroke()
-    }
-}
-
-// MARK: - ChevronRightView
-
-private class ChevronRightView: UIView {
-
-    override init(frame: CGRect) {
-        super.init(frame: frame)
-        backgroundColor = .clear
-    }
-
-    required init?(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
-
-    override func draw(_ rect: CGRect) {
-        guard let ctx = UIGraphicsGetCurrentContext() else { return }
-
-        let chevron = UIBezierPath()
-        chevron.move(to: CGPoint(x: rect.minX + 2, y: rect.minY + 2))
-        chevron.addLine(to: CGPoint(x: rect.maxX - 2, y: rect.midY))
-        chevron.addLine(to: CGPoint(x: rect.minX + 2, y: rect.maxY - 2))
-        chevron.lineWidth = 1.8
-        chevron.lineCapStyle = .round
-        chevron.lineJoinStyle = .round
-
-        ctx.setStrokeColor(Theme.Colors.textSecondary.cgColor)
-        chevron.stroke()
     }
 }

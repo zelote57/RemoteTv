@@ -13,6 +13,7 @@ protocol GoogleTVDiscoveryDelegate: AnyObject {
 class GoogleTVDiscovery: NSObject, NetServiceBrowserDelegate, NetServiceDelegate {
 
     static let shared = GoogleTVDiscovery()
+    static let didUpdateDevicesNotification = Notification.Name("GoogleTVDiscoveryDidUpdateDevicesNotification")
 
     weak var delegate: GoogleTVDiscoveryDelegate?
 
@@ -21,7 +22,7 @@ class GoogleTVDiscovery: NSObject, NetServiceBrowserDelegate, NetServiceDelegate
             DispatchQueue.main.async {
                 self.delegate?.discoveryDidUpdateDevices(self, devices: self.devices)
                 NotificationCenter.default.post(
-                    name: NSNotification.Name("GoogleTVDiscoveryDidUpdateDevicesNotification"),
+                    name: GoogleTVDiscovery.didUpdateDevicesNotification,
                     object: self.devices
                 )
             }
@@ -45,8 +46,8 @@ class GoogleTVDiscovery: NSObject, NetServiceBrowserDelegate, NetServiceDelegate
         isSearching = true
         
         print("[Discovery] Iniciando escaneo de Android TV / Google TV...")
-        remoteBrowser.searchForServices(ofType: "_androidtvremote2._tcp.", inDomain: "local.")
-        castBrowser.searchForServices(ofType: "_googlecast._tcp.", inDomain: "local.")
+        remoteBrowser.searchForServices(ofType: AppConstants.Network.mdnsServiceTypeRemote, inDomain: AppConstants.Network.mdnsLocalDomain)
+        castBrowser.searchForServices(ofType: AppConstants.Network.mdnsServiceTypeCast, inDomain: AppConstants.Network.mdnsLocalDomain)
 
         // Sondeo rápido inmediato a la IP confirmada del televisor en la red local
         performDirectProbes()
@@ -88,7 +89,7 @@ class GoogleTVDiscovery: NSObject, NetServiceBrowserDelegate, NetServiceDelegate
         }
 
         if ipAddress.contains(".local") || ipAddress.isEmpty {
-            ipAddress = "192.168.100.175"
+            ipAddress = AppConstants.Network.targetDeviceFallbackIP
         }
         let fixedTv = DiscoveredTV(name: name, host: ipAddress, port: GoogleTVPorts.pairing)
         addDiscoveredDevice(fixedTv)
@@ -105,10 +106,10 @@ class GoogleTVDiscovery: NSObject, NetServiceBrowserDelegate, NetServiceDelegate
 
     // Sondeo directo HTTP al puerto Cast/Eureka (8008) para identificar el nombre de inmediato
     private func performDirectProbes() {
-        let candidates = ["192.168.100.175"] // IP confirmada en esta red
+        let candidates = [AppConstants.Network.targetDeviceFallbackIP] // IP confirmada en esta red
         
         for ip in candidates {
-            guard let url = URL(string: "http://\(ip):8008/setup/eureka_info") else { continue }
+            guard let url = URL(string: "http://\(ip):\(AppConstants.Network.castProbePort)/setup/eureka_info") else { continue }
             var req = URLRequest(url: url)
             req.timeoutInterval = 2.0
             

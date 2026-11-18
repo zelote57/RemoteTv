@@ -227,6 +227,20 @@ struct Theme {
 
         /// Empty state alert red
         static let alertRed = UIColor(red: 244/255, green: 63/255, blue: 94/255, alpha: 1.0)
+
+        /// Circular close button background for sheets
+        static var sheetCloseButtonBackground: UIColor {
+            return Theme.isDark
+                ? UIColor(white: 1.0, alpha: 0.08)
+                : UIColor(red: 241/255, green: 245/255, blue: 249/255, alpha: 1.0)
+        }
+
+        /// Inactive badge background color
+        static var badgeInactiveBackground: UIColor {
+            return Theme.isDark
+                ? UIColor(white: 1.0, alpha: 0.08)
+                : UIColor(red: 241/255, green: 245/255, blue: 249/255, alpha: 1.0)
+        }
     }
 
     // MARK: - Layer Shadows (Neomorphic Depth)

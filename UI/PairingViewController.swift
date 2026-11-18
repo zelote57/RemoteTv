@@ -505,7 +505,7 @@ class PairingViewController: UIViewController {
 
         grabberPill.backgroundColor = Theme.Colors.sheetGrabber
 
-        closeButton.backgroundColor = Theme.isDark ? UIColor(white: 1.0, alpha: 0.08) : UIColor(red: 241/255, green: 245/255, blue: 249/255, alpha: 1.0)
+        closeButton.backgroundColor = Theme.Colors.sheetCloseButtonBackground
         closeButton.layer.borderColor = Theme.Colors.sheetCardBorder.cgColor
         closeButton.setTitleColor(Theme.Colors.textSecondary, for: .normal)
 

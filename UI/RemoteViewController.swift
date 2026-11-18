@@ -128,7 +128,7 @@ class RemoteViewController: UIViewController, GoogleTVClientDelegate, DPadViewDe
         pickerContainer.addSubview(statusRow)
 
         headerActions.axis = .horizontal
-        headerActions.spacing = 10
+        headerActions.spacing = AppConstants.UI.headerActionsSpacing
         headerActions.alignment = .center
         headerActions.translatesAutoresizingMaskIntoConstraints = false
         
@@ -409,8 +409,8 @@ class RemoteViewController: UIViewController, GoogleTVClientDelegate, DPadViewDe
     }
 
     private func updateRemoteControlsEnabledState(_ isConnected: Bool, animated: Bool = true) {
-        let targetAlpha: CGFloat = isConnected ? 1.0 : 0.35
-        let duration: TimeInterval = animated ? 0.25 : 0.0
+        let targetAlpha: CGFloat = isConnected ? 1.0 : AppConstants.UI.standbyControlAlpha
+        let duration: TimeInterval = animated ? AppConstants.UI.defaultAnimationDuration : 0.0
 
         UIView.animate(withDuration: duration) { [weak self] in
             guard let self = self else { return }
