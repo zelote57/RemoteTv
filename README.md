@@ -1,12 +1,11 @@
-# Remote TV - White Minimalist Remote for Google TV / Android TV
+# Remote TV – White Minimalist Remote for Google TV / Android TV
 
-Aplicación nativa de iOS escrita en **Swift 5** y **UIKit**, optimizada para **iOS 12.0+** (iPhone 6, iPhone X, iPhone 14 Pro).
+A native iOS app written in **Swift 5** and **UIKit**, optimized for **iOS 12.0+** (iPhone 6, iPhone X, iPhone 14 Pro).
 
-## Características
-* **Estética Blanca Minimalista:** Diseño limpio en blanco perla con sombras suaves, inspirado en la estética industrial de Dieter Rams y Apple.
-* **Soporte Nativo iOS 12:** Compatible con el chip A8 del iPhone 6 (60 FPS, bajo consumo de RAM).
-* **Protocolo Google TV v2:** Preparado para comunicación directa por Wi-Fi (emparejamiento con PIN en puerto 6466 y control Protobuf en puerto 6467).
-* **Compilación en la Nube:** Flujo automatizado con GitHub Actions para generar el paquete `.ipa` desde Windows sin necesidad de Mac local.
+## Features
+- **White Minimalist Aesthetic:** Clean pearl‑white design with soft shadows, inspired by Dieter Rams and Apple.
+- **Native iOS 12 Support:** Works on A8‑chip iPhone 6 (60 FPS, low RAM usage).
+- **Google TV v2 Protocol:** Direct Wi‑Fi communication (PIN pairing on port 6466, Protobuf control on port 6467).
+- **Cloud Build:** Automated GitHub Actions workflow builds the `.ipa` from Windows without a local Mac.
 
-## Vista Previa en Windows
-Abre `preview/index.html` en cualquier navegador en tu PC para interactuar con el diseño del control remoto y probar los botones táctiles.
+
