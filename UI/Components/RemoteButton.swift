@@ -88,7 +88,7 @@ class RemoteButton: UIButton {
         ctx.setLineWidth(1.0)
         circlePath.stroke()
 
-        guard iconType != .none else { return }
+
 
         let center = CGPoint(x: rect.midX, y: rect.midY)
         let iconColor = Theme.Colors.textPrimary
