@@ -60,6 +60,7 @@
 "picker.manual_ip_message" = "Ingresa la dirección IP del televisor en tu red local:";
 "picker.manual_ip_placeholder" = "192.168.1.100";
 "picker.manual_ip_connect" = "Conectar";
+"picker.already_connected" = "Ya estás conectado a este dispositivo";
 
 // MARK: - Common Actions & Alerts
 "common.ok" = "Entendido";

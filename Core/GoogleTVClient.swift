@@ -94,8 +94,22 @@ class GoogleTVClient: GoogleTVDiscoveryDelegate, PairingServiceDelegate, RemoteS
 
     // MARK: - Explicit Connection (user-initiated from DevicePickerSheet)
 
+    /// Returns true if currently connected to the given host.
+    func isConnected(toHost host: String) -> Bool {
+        if case .connected = currentStatus, currentHost == host {
+            return true
+        }
+        return false
+    }
+
     /// Initiates a connection to the given TV. Called only via explicit user action.
     func connect(to tv: DiscoveredTV) {
+        // Skip if already connected to this device
+        if isConnected(toHost: tv.host) {
+            print("[Client] Already connected to \(tv.name) — skipping reconnection")
+            return
+        }
+
         currentTVName = tv.name
         currentHost   = tv.host
 

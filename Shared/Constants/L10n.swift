@@ -212,6 +212,10 @@ enum L10n {
         static var manualIpConnect: String {
             return "picker.manual_ip_connect".localized
         }
+
+        static var alreadyConnected: String {
+            return "picker.already_connected".localized
+        }
     }
     
     // MARK: - Common Actions & Alerts

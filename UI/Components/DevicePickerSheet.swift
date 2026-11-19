@@ -703,9 +703,61 @@ class DevicePickerSheet: UIViewController, UITableViewDataSource, UITableViewDel
         HapticManager.playSelection()
         guard indexPath.row < devices.count else { return }
         let selectedDevice = devices[indexPath.row]
+
+        // If the device is already connected, show a toast and dismiss
+        if currentConnectedHost != nil && selectedDevice.host == currentConnectedHost {
+            HapticManager.playSuccess()
+            showAlreadyConnectedToast()
+            return
+        }
+
         dismissAnimated { [weak self] in
             guard let self = self else { return }
             self.delegate?.devicePickerDidSelectDevice(self, device: selectedDevice)
+        }
+    }
+
+    // MARK: - Already Connected Toast
+
+    private func showAlreadyConnectedToast() {
+        let toast = UILabel()
+        toast.text = L10n.Picker.alreadyConnected
+        toast.font = UIFont.systemFont(ofSize: 13, weight: .semibold)
+        toast.textColor = .white
+        toast.backgroundColor = Theme.Colors.connected
+        toast.textAlignment = .center
+        toast.layer.cornerRadius = 20.0
+        toast.clipsToBounds = true
+        toast.alpha = 0
+        toast.translatesAutoresizingMaskIntoConstraints = false
+        containerView.addSubview(toast)
+
+        NSLayoutConstraint.activate([
+            toast.centerXAnchor.constraint(equalTo: containerView.centerXAnchor),
+            toast.bottomAnchor.constraint(equalTo: actionsContainer.topAnchor, constant: -12),
+            toast.leadingAnchor.constraint(greaterThanOrEqualTo: containerView.leadingAnchor, constant: 24),
+            toast.trailingAnchor.constraint(lessThanOrEqualTo: containerView.trailingAnchor, constant: -24),
+            toast.heightAnchor.constraint(equalToConstant: 40)
+        ])
+
+        // Add horizontal padding inside the label
+        toast.layoutMargins = UIEdgeInsets(top: 0, left: 20, bottom: 0, right: 20)
+
+        // Workaround: use a wrapper for padding since UILabel doesn't support internal insets natively
+        let paddedWidth = toast.intrinsicContentSize.width + 40
+        toast.widthAnchor.constraint(greaterThanOrEqualToConstant: paddedWidth).isActive = true
+
+        containerView.layoutIfNeeded()
+
+        UIView.animate(withDuration: 0.25, delay: 0, options: [.curveEaseOut], animations: {
+            toast.alpha = 1.0
+        }) { _ in
+            UIView.animate(withDuration: 0.3, delay: 1.5, options: [.curveEaseIn], animations: {
+                toast.alpha = 0
+            }) { [weak self] _ in
+                toast.removeFromSuperview()
+                self?.dismissAnimated()
+            }
         }
     }
 }
